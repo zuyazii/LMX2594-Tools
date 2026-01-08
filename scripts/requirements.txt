@@ -1,0 +1,10 @@
+# LMX2594 Frequency Generator Requirements
+#
+# This project uses ctypes to interface with USB2ANY.dll
+# No additional Python packages required beyond the standard library
+#
+# Requirements:
+# - Python 3.6+
+# - USB2ANY.dll (provided in parent directory)
+# - USB2ANY hardware device
+# - LMX2594 evaluation board
