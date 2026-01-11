@@ -158,8 +158,8 @@ class SPI_ChipSelectType(IntEnum):
     SPI_Pulse_After_Packet = 255
 
 class SPI_ChipSelectPolarity(IntEnum):
-    SPI_CS_Active_Low = 0
-    SPI_CS_Active_High = 1
+    SPI_CS_Active_High = 0
+    SPI_CS_Active_Low = 1
 
 def u2aSPI_Control(handle, _SPI_ClockPhase, _SPI_ClockPolarity, _SPI_BitDirection,
                    _SPI_CharacterLength, _SPI_CSType, _SPI_CSPolarity, _DividerHigh, _DividerLow):
@@ -214,11 +214,18 @@ def GetSerialNumberFromHandle(index):
 
 # High-level interface for LMX2594 SPI communication
 class USB2ANYInterface:
-    def __init__(self, serial_number=None):
+    def __init__(self, serial_number=None, debug=False):
         self.handle = None
         self.serial_number = serial_number
         self.connected = False
         self.CE_PIN = 7
+        self.clock_freq = 400000
+        self.spi_mode = 0
+        self.debug = debug
+
+    def _log(self, message):
+        if self.debug:
+            print(message)
 
     def connect(self):
         # Find device
@@ -268,7 +275,7 @@ class USB2ANYInterface:
             u2aClose(self.handle)
             self.connected = False
 
-    def configure_spi(self, clock_freq=400000):
+    def configure_spi(self, clock_freq=400000, mode=0, quiet=False):
         """
         Configure SPI for LMX2594 communication
 
@@ -284,10 +291,17 @@ class USB2ANYInterface:
         if not self.connected:
             raise RuntimeError("Not connected to USB2ANY device")
 
-        # Try SPI Mode 0: CPOL=0, CPHA=0 (standard SPI mode)
-        # LMX2594 datasheet may specify Mode 0 instead of Mode 1
-        clock_phase = SPI_ClockPhase.SPI_Capture_On_Trailing_Edge  # 0
-        clock_polarity = SPI_ClockPolarity.SPI_Inactive_State_Low  # 0
+        if mode not in (0, 1):
+            raise ValueError(f"Unsupported SPI mode: {mode} (use 0 or 1)")
+
+        # SPI Mode 0: CPOL=0, sample on leading edge
+        # SPI Mode 1: CPOL=0, sample on trailing edge
+        if mode == 0:
+            clock_phase = SPI_ClockPhase.SPI_Capture_On_Leading_Edge   # 1
+            clock_polarity = SPI_ClockPolarity.SPI_Inactive_State_Low  # 0
+        else:
+            clock_phase = SPI_ClockPhase.SPI_Capture_On_Trailing_Edge  # 0
+            clock_polarity = SPI_ClockPolarity.SPI_Inactive_State_Low  # 0
 
         # MSB first, 8-bit, CS with every packet, CS active low
         bit_direction = SPI_BitDirection.SPI_MSB_First
@@ -307,7 +321,22 @@ class USB2ANYInterface:
         if ret < 0:
             raise RuntimeError(f"Failed to configure SPI: {ret}")
 
-        print(f"SPI configured: {bitRateKbps} kbps clock, Mode 0 (CPOL=0, CPHA=0)")
+        self.clock_freq = clock_freq
+        self.spi_mode = mode
+        if not quiet:
+            print(f"SPI configured: {bitRateKbps} kbps clock, Mode {mode} (CPOL=0, CPHA={mode})")
+        self._log(
+            "SPI control: phase=%s polarity=%s cs_type=%s cs_pol=%s divider=%s/%s"
+            % (clock_phase, clock_polarity, cs_type, cs_polarity, dividerHigh, dividerLow)
+        )
+
+    def set_spi_mode(self, mode):
+        if not self.connected:
+            raise RuntimeError("Not connected to USB2ANY device")
+        if mode == self.spi_mode:
+            return
+        self._log(f"SPI mode switch: {self.spi_mode} -> {mode}")
+        self.configure_spi(clock_freq=self.clock_freq, mode=mode, quiet=True)
 
     def spi_write_read(self, data):
         """
@@ -322,7 +351,10 @@ class USB2ANYInterface:
         if not self.connected:
             raise RuntimeError("Not connected to USB2ANY device")
 
-        return u2aSPI_WriteAndRead(self.handle, len(data), data)
+        ret, response = u2aSPI_WriteAndRead(self.handle, len(data), data)
+        if self.debug:
+            self._log(f"SPI W/R: tx={data.hex()} ret={ret} rx={response.hex()}")
+        return ret, response
 
     def read_gpio(self, pin):
         """Read GPIO pin state"""

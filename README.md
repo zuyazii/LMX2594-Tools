@@ -1,15 +1,6 @@
 # LMX2594 Frequency Generator
 
-Python scripts to program the LMX2594 frequency synthesizer via USB2ANY SPI interface to generate continuous frequency output with automatic lock detection and VCO recalibration.
-
-## Features
-
-- **24-bit SPI Register Programming**: Correctly implements LMX2594's 24-bit register format
-- **Frequency Calculation**: Automatic computation of VCO, N divider, and channel divider values
-- **Lock Detection**: Continuous monitoring via MUXout pin configured for lock detect
-- **VCO Recalibration**: Automatic recalibration on unlock with configurable retry limits
-- **Register Verification**: Read-back verification of all register writes with retry logic
-- **CLI Interface**: Comprehensive command-line interface with multiple options
+Python scripts to program the LMX2594 frequency synthesizer via USB2ANY SPI interface to generate continuous of a specified frequency output with automatic lock detection and VCO recalibration.
 
 ## Hardware Requirements
 
@@ -20,7 +11,7 @@ Python scripts to program the LMX2594 frequency synthesizer via USB2ANY SPI inte
 
 ## Hardware Connections
 
-Based on the GPIO mapping in `docs/LMX2594-LMX2595-LMX2592-GPIO映射表.txt`:
+Using a 10-pin SPI wire to connect the USB2ANY and the LMX2594, and connect the LMX2594 with a +5v power supply:
 
 ```
 USB2ANY <-> LMX2594 Module
@@ -36,40 +27,17 @@ Power Connections:
 GND      <-> LMX2594 GND
 
 Reference Input:
-50MHz    <-> LMX2594 FINC/FDEC (Reference Clock Input)
+50MHz    <-> LMX2594 FINC/FDEC (Reference Clock Input, usually on-board)
 ```
-
-**Important**: Ensure proper SPI mode 0 configuration (CPOL=0, CPHA=0) and active-low chip select.
 
 ## Installation
 
-1. Ensure USB2ANY.dll is available (located in parent directory)
-2. Install Python 3.6+ if not already installed
-3. No additional Python packages required (uses standard library + ctypes)
-
-**Note**: The USB2ANY.dll must be compatible with your Python installation architecture (32-bit or 64-bit). If you get "[WinError 193] %1 is not a valid Win32 application", the DLL architecture doesn't match your Python installation.
+1. Ensure USB2ANY.dll is available (located in root directory)
+2. Install 32-bit Python 3.6+ if not already installed, creating a venv is suggested
 
 ## Usage
 
 ### Basic Usage
-
-Test that imports work correctly:
-
-```bash
-python scripts/frequency_generator.py --test-imports --freq 3.6GHz
-```
-
-Test register generation without hardware:
-
-```bash
-python scripts/frequency_generator.py --test-registers --freq 3.6GHz
-```
-
-Test full programming flow with mock hardware:
-
-```bash
-python scripts/frequency_generator.py --freq 3.6GHz --mock-hardware
-```
 
 Generate 3.6 GHz continuous output:
 

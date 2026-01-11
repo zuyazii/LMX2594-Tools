@@ -17,14 +17,130 @@ REG_FCAL_EN = 0x00       # Bit 3 in R0
 # GPIO mapping for LMX2594 MUXout (from docs/LMX2594-LMX2595-LMX2592-GPIO映射表.txt)
 MUXOUT_PIN = 1  # PA1 according to the mapping table
 
+CHDIV_TABLE = {
+    0: 2, 1: 4, 2: 6, 3: 8, 4: 12, 5: 16, 6: 24, 7: 32, 8: 48, 9: 64,
+    10: 72, 11: 96, 12: 128, 13: 192, 14: 256, 15: 384, 16: 512, 17: 768,
+}
+
+
+def _compute_pfd_from_registers(f_osc, reg_map):
+    """Compute fPD using the same bit fields as the vendor reference."""
+    osc_2x = (reg_map.get(9, 0) >> 12) & 0x1
+    mult = (reg_map.get(10, 0) >> 7) & 0x1F
+    pll_r = (reg_map.get(11, 0) >> 4) & 0xFF
+    pll_r_pre = reg_map.get(12, 0) & 0xFF
+
+    mult = 1 if mult == 0 else mult
+    pll_r = 1 if pll_r == 0 else pll_r
+    pll_r_pre = 1 if pll_r_pre == 0 else pll_r_pre
+
+    f_pd = f_osc * (1 + osc_2x) * mult / (pll_r_pre * pll_r)
+    return f_pd, osc_2x, mult, pll_r_pre, pll_r
+
+
+def _select_chdiv_for_frequency(f_out, f_vco_min=7.5e9, f_vco_max=15e9):
+    """Pick the smallest channel divider that places VCO within range."""
+    sorted_divs = sorted(CHDIV_TABLE.items(), key=lambda kv: kv[1])
+    if f_vco_min <= f_out <= f_vco_max:
+        return None, 1, f_out  # direct VCO path (no channel divider)
+
+    for code, div in sorted_divs:
+        f_vco = f_out * div
+        if f_vco_min <= f_vco <= f_vco_max:
+            return code, div, f_vco
+
+    raise ValueError(f"Cannot place VCO in range {f_vco_min/1e9:.1f}-{f_vco_max/1e9:.1f} GHz for f_out={f_out/1e9:.3f} GHz")
+
+
+def build_registers_from_template(f_out, f_osc, template_reg_map, vco_min=7.5e9, vco_max=15e9):
+    """
+    Apply PLL math (fPD, N/NUM/DEN, CHDIV) on top of a template register map.
+
+    Returns: (new_reg_map, plan_dict)
+    """
+    reg_map = dict(template_reg_map)
+    f_pd, osc_2x, mult, pll_r_pre, pll_r = _compute_pfd_from_registers(f_osc, reg_map)
+
+    chdiv_code, chdiv_value, f_vco = _select_chdiv_for_frequency(f_out, vco_min, vco_max)
+
+    den_default = ((reg_map.get(38, 0) & 0xFFFF) << 16) | (reg_map.get(39, 0) & 0xFFFF)
+    if den_default == 0:
+        den_default = 1000  # align with template default of 0x03E8 (1000)
+
+    n_total = f_out * chdiv_value / f_pd
+    n_int = int(math.floor(n_total))
+    frac = n_total - n_int
+    num = int(round(frac * den_default))
+    den = den_default
+
+    if num == den:
+        n_int += 1
+        num = 0
+        den = 1
+
+    if num and den:
+        g = math.gcd(num, den)
+        if g > 1:
+            num //= g
+            den //= g
+
+    if f_vco > 12.8e9 and n_int < 28:
+        raise ValueError(f"N={n_int} too small for VCO {f_vco/1e9:.3f} GHz")
+
+    reg_map[34] = (n_int >> 16) & 0xFFFF
+    reg_map[36] = n_int & 0xFFFF
+    reg_map[38] = (den >> 16) & 0xFFFF
+    reg_map[39] = den & 0xFFFF
+    reg_map[42] = (num >> 16) & 0xFFFF
+    reg_map[43] = num & 0xFFFF
+
+    if chdiv_code is not None:
+        existing = reg_map.get(75, 0)
+        reg_map[75] = (existing & ~(0x3F << 6)) | ((chdiv_code & 0x3F) << 6)
+        chdiv_div2 = 0 if chdiv_code == 0 else 1
+    else:
+        chdiv_div2 = 0
+
+    reg31 = reg_map.get(31, 0)
+    reg_map[31] = (reg31 & ~(1 << 14)) | ((chdiv_div2 & 0x1) << 14)
+
+    plan = {
+        'f_pd': f_pd,
+        'osc_2x': osc_2x,
+        'mult': mult,
+        'pll_r_pre': pll_r_pre,
+        'pll_r': pll_r,
+        'chdiv_code': chdiv_code,
+        'chdiv_value': chdiv_value,
+        'f_vco': f_vco,
+        'n_int': n_int,
+        'num': num,
+        'den': den,
+        'n_total': n_total,
+    }
+
+    return reg_map, plan
+
+
 class LMX2594Error(Exception):
     """LMX2594 specific errors"""
     pass
 
 class LMX2594Driver:
-    def __init__(self, usb2any_interface):
+    def __init__(self, usb2any_interface, readback_enabled=False, debug=False):
         self.usb2any = usb2any_interface
         self.registers = {}  # Cache of register values
+        self.readback_enabled = readback_enabled
+        self._r0_base = None
+        self._readback_warning_emitted = False
+        self.debug = debug
+
+        # R0 reserved bit pattern per datasheet (D13..D10 = 1001, D4 = 1)
+        self._r0_fixed_bits = (1 << 13) | (1 << 10) | (1 << 4)
+
+    def _log(self, message):
+        if self.debug:
+            print(message)
 
     def _pack_24bit_register(self, addr, data, read=False):
         """
@@ -71,6 +187,17 @@ class LMX2594Driver:
 
         return addr, reg_data
 
+    def _unpack_readback_data(self, data):
+        """
+        Unpack MUXout readback data.
+
+        MUXout is low during the address phase, then outputs RB15..RB0 during data.
+        """
+        if len(data) != 3:
+            raise ValueError(f"Expected 3 bytes, got {len(data)}")
+
+        return (data[1] << 8) | data[2]
+
     def write_register(self, addr, data, verify=True, max_retries=3):
         """
         Write 24-bit register with optional read-back verification
@@ -91,6 +218,13 @@ class LMX2594Driver:
             ret, _ = self.usb2any.spi_write_read(packet)
             if ret < 0:
                 raise LMX2594Error(f"SPI write failed: {ret}")
+
+            if verify and not self.readback_enabled:
+                if not self._readback_warning_emitted:
+                    print("Note: Readback disabled; skipping register verification checks.")
+                    self._readback_warning_emitted = True
+                self.registers[addr] = data
+                return
 
             if not verify or addr in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 58, 59, 60, 75]:  # Skip verification for registers with unreliable read-back
                 self.registers[addr] = data
@@ -124,13 +258,29 @@ class LMX2594Driver:
         Returns:
             tuple: (address, data)
         """
+        if not self.readback_enabled:
+            raise LMX2594Error("SPI readback is disabled. Enable readback to use read_register().")
+
         packet = self._pack_24bit_register(addr, 0, read=True)  # Data field ignored for reads
+        prev_mode = None
+        if hasattr(self.usb2any, "spi_mode"):
+            prev_mode = self.usb2any.spi_mode
+        if hasattr(self.usb2any, "set_spi_mode"):
+            self.usb2any.set_spi_mode(1)
 
-        ret, response = self.usb2any.spi_write_read(packet)
-        if ret < 0:
-            raise LMX2594Error(f"SPI read failed: {ret}")
+        try:
+            self._log(f"Readback: mode before={prev_mode} using=1 addr={addr}")
+            ret, response = self.usb2any.spi_write_read(packet)
+            if ret < 0:
+                raise LMX2594Error(f"SPI read failed: {ret}")
+        finally:
+            if prev_mode is not None and hasattr(self.usb2any, "set_spi_mode"):
+                self.usb2any.set_spi_mode(prev_mode)
+                self._log(f"Readback: mode restored to {prev_mode}")
 
-        return self._unpack_24bit_register(response)
+        data = self._unpack_readback_data(response)
+        self._log(f"Readback raw={response.hex()} data=0x{data:04X}")
+        return addr, data
 
     def compute_frequency_plan(self, f_target, f_osc=50e6, pfd_target=50e6):
         """
@@ -166,6 +316,8 @@ class LMX2594Driver:
             for chdiv in valid_chdivs:
                 f_vco = f_target * chdiv
                 if 7.5e9 <= f_vco <= 15e9:
+                    if f_vco > 10e9 and chdiv > 6:
+                        continue
                     break
             else:
                 raise ValueError(f"Cannot reach {f_target/1e9:.1f} GHz with valid VCO frequency")
@@ -183,14 +335,18 @@ class LMX2594Driver:
 
         pfd_freq = f_osc / r_div
 
-        # 3. Check PFD limits
-        if pfd_freq > 400e6:
-            raise ValueError(f"PFD {pfd_freq/1e6:.1f} MHz exceeds 400 MHz limit")
-
-        # 4. Calculate N divider
+        # 3. Calculate N divider
         n_total = f_vco / pfd_freq
         n_int = int(n_total)
         n_frac = int((n_total - n_int) * 2**32)  # 32-bit fractional
+
+        is_integer = (n_frac == 0)
+
+        # 4. Check PFD limits
+        pfd_limit = 400e6 if is_integer else 300e6
+        if pfd_freq > pfd_limit:
+            mode = "integer" if is_integer else "fractional"
+            raise ValueError(f"PFD {pfd_freq/1e6:.1f} MHz exceeds {pfd_limit/1e6:.0f} MHz limit for {mode} mode")
 
         # 5. Check N divider minimum
         if f_vco > 12.8e9 and n_int < 28:
@@ -202,8 +358,65 @@ class LMX2594Driver:
             'r_div': r_div,
             'n_int': n_int,
             'n_frac': n_frac,
-            'pfd_freq': pfd_freq
+            'pfd_freq': pfd_freq,
+            'frac_order': 0 if is_integer else 4
         }
+
+    def _select_fcal_adj(self, pfd_freq):
+        if pfd_freq <= 100e6:
+            hpfd_adj = 0
+        elif pfd_freq <= 150e6:
+            hpfd_adj = 1
+        elif pfd_freq <= 200e6:
+            hpfd_adj = 2
+        else:
+            hpfd_adj = 3
+
+        if pfd_freq >= 10e6:
+            lpfd_adj = 0
+        elif pfd_freq >= 5e6:
+            lpfd_adj = 1
+        elif pfd_freq >= 2.5e6:
+            lpfd_adj = 2
+        else:
+            lpfd_adj = 3
+
+        return hpfd_adj, lpfd_adj
+
+    def _build_r0_base(self, pfd_freq, muxout_lock_detect=False):
+        hpfd_adj, lpfd_adj = self._select_fcal_adj(pfd_freq)
+        r0 = self._r0_fixed_bits
+        r0 |= (hpfd_adj & 0x3) << 7
+        r0 |= (lpfd_adj & 0x3) << 5
+        if muxout_lock_detect:
+            r0 |= (1 << 2)
+        return r0
+
+    def _set_muxout_mode(self, lock_detect):
+        if self._r0_base is None:
+            self._r0_base = self._build_r0_base(50e6, muxout_lock_detect=lock_detect)
+        if lock_detect:
+            self._r0_base |= (1 << 2)
+        else:
+            self._r0_base &= ~(1 << 2)
+        self.write_register(REG_RESET, self._r0_base, verify=False)
+
+    def _select_pfd_dly_sel(self, f_vco, frac_order):
+        if frac_order == 0:
+            return 1 if f_vco <= 12.5e9 else 2
+        if frac_order == 1:
+            if f_vco <= 10e9:
+                return 1
+            if f_vco <= 12.5e9:
+                return 2
+            return 3
+        if frac_order == 2:
+            return 2 if f_vco <= 10e9 else 3
+        if frac_order == 3:
+            return 3 if f_vco <= 10e9 else 4
+        if frac_order == 4:
+            return 5 if f_vco <= 10e9 else 6
+        return 2
 
     def configure_muxout_lock_detect(self):
         """
@@ -211,14 +424,15 @@ class LMX2594Driver:
 
         Sets MUXOUT_LD_SEL = 1 in R0 to route lock detect to MUXout pin
         """
-        # Read current R0 value
-        _, current_r0 = self.read_register(REG_RESET)
-
-        # Set MUXOUT_LD_SEL bit (bit 2)
-        new_r0 = current_r0 | (1 << 2)
-
-        self.write_register(REG_RESET, new_r0)
+        self._set_muxout_mode(lock_detect=True)
         print("Configured MUXout for Lock Detect output")
+
+    def configure_muxout_readback(self):
+        """
+        Configure MUXout to output readback data
+        """
+        self._set_muxout_mode(lock_detect=False)
+        print("Configured MUXout for readback output")
 
     def initial_programming(self, register_list):
         """
@@ -236,15 +450,17 @@ class LMX2594Driver:
 
         # 1. Chip CE and power already enabled in USB2ANY.connect()
 
+        if self._r0_base is None:
+            self._r0_base = self._build_r0_base(50e6, muxout_lock_detect=False)
+
         # 2. Write R0 with RESET=1
-        _, current_r0 = self.read_register(REG_RESET)
-        reset_r0 = current_r0 | (1 << 1)
+        reset_r0 = self._r0_base | (1 << 1)
         self.write_register(REG_RESET, reset_r0, verify=False)
         print("Set RESET=1")
         time.sleep(0.01)  # Wait 10ms
 
         # 3. Write R0 with RESET=0
-        reset_r0 &= ~(1 << 1)
+        reset_r0 = self._r0_base & ~(1 << 1)
         self.write_register(REG_RESET, reset_r0, verify=False)
         print("Set RESET=0")
         time.sleep(0.01)
@@ -258,8 +474,7 @@ class LMX2594Driver:
         print(f"Programmed {len(sorted_regs)} registers")
 
         # 5. Write R0 with FCAL_EN=1 to start VCO calibration
-        _, current_r0 = self.read_register(REG_RESET)
-        fcal_r0 = current_r0 | (1 << 3)
+        fcal_r0 = self._r0_base | (1 << 3)
         self.write_register(REG_RESET, fcal_r0, verify=False)
         print("Set FCAL_EN=1, starting VCO calibration")
 
@@ -278,10 +493,12 @@ class LMX2594Driver:
         """
         print("Performing VCO recalibration...")
 
+        if self._r0_base is None:
+            self._r0_base = self._build_r0_base(50e6, muxout_lock_detect=True)
+
         # 1. Write R0 with FCAL_EN=1
-        _, current_r0 = self.read_register(REG_RESET)
-        fcal_r0 = current_r0 | (1 << 3)  # SET FCAL_EN bit
-        self.write_register(REG_RESET, fcal_r0)
+        fcal_r0 = self._r0_base | (1 << 3)  # SET FCAL_EN bit
+        self.write_register(REG_RESET, fcal_r0, verify=False)
         print("Set FCAL_EN=1 for recalibration")
 
         # 2. Wait ≥20 µs
@@ -325,55 +542,71 @@ class LMX2594Driver:
         plan = self.compute_frequency_plan(f_target, f_osc, pfd_target)
         print(f"Frequency plan: {plan}")
 
+        self._r0_base = self._build_r0_base(plan['pfd_freq'], muxout_lock_detect=False)
+
         # Generate register values based on plan
         register_list = self._generate_register_list(plan)
 
         # Perform initial programming
         self.initial_programming(register_list)
 
-        # Verify programming by testing SPI communication
-        print("Verifying SPI communication...")
-        import time
-        time.sleep(0.1)  # Wait 100ms for LMX2594 to process registers
+        if self.readback_enabled:
+            # Verify programming by testing SPI communication
+            print("Note: Readback uses MUXout; ensure MUXout is wired to the USB2ANY readback input.")
+            self.configure_muxout_readback()
+            print("Verifying SPI communication...")
+            import time
+            time.sleep(0.1)  # Wait 100ms for LMX2594 to process registers
 
-        try:
-            # Test 1: Try reading register 0 (should respond even if not programmed)
-            print("Test 1: Reading register 0...")
-            addr, data = self.read_register(0)
-            print(f"  Read R{addr} = 0x{data:04X}")
+            try:
+                # Test 1: Try reading register 0 (should respond even if not programmed)
+                print("Test 1: Reading register 0...")
+                addr, data = self.read_register(0)
+                print(f"  Read R{addr} = 0x{data:04X}")
 
-            if data != 0:
-                print("✓ SPI communication working - LMX2594 is responding!")
-            else:
-                print("⚠ Register 0 returned 0x0000 - trying different approach...")
+                if data != 0:
+                    print("✓ SPI communication working - LMX2594 is responding!")
+                else:
+                    print("⚠ Register 0 returned 0x0000 - trying different approach...")
 
-                # Test 2: Try writing to register 0 and reading back
-                print("Test 2: Writing to register 0 and reading back...")
-                test_value = 0x1234
-                self.write_register(0, test_value, verify=False)  # Write without verification
+                print("Test 2: Re-reading register 0 after a short delay...")
                 time.sleep(0.01)  # Small delay
                 addr2, data2 = self.read_register(0)
-                print(f"  After writing 0x{test_value:04X}, read R{addr2} = 0x{data2:04X}")
+                print(f"  Read R{addr2} = 0x{data2:04X}")
 
-                if data2 == test_value:
-                    print("✓ SPI communication working - write/read cycle successful!")
+                if data2 != 0:
+                    print("✓ SPI communication working - readback responding!")
                 else:
                     print("✗ CRITICAL: SPI communication failed")
-                    print("  The LMX2594 is not responding to SPI commands")
+                    print("  The LMX2594 is not responding to SPI readback")
                     print("  Possible causes:")
                     print("  - SPI mode should be Mode 1 (try changing back)")
                     print("  - USB2ANY firmware incompatible")
                     print("  - SPI timing or bit order wrong")
-                    print("  - CE pin timing issues")
+                    print("  - MUXout not reaching USB2ANY MISO")
 
-        except Exception as e:
-            print(f"✗ SPI communication failed: {e}")
-            print("  Check USB2ANY to LMX2594 connections")
+            except Exception as e:
+                print(f"✗ SPI communication failed: {e}")
+                print("  Check USB2ANY to LMX2594 connections")
+        else:
+            print("Skipping SPI readback test (readback disabled).")
 
         # Configure MUXout for lock detect
         self.configure_muxout_lock_detect()
 
         return plan
+
+    def program_registers(self, register_list, r0_value=None):
+        """
+        Program device from a full register list.
+
+        Args:
+            register_list: list of (addr, data) tuples
+            r0_value: optional R0 data value to use as the base
+        """
+        if r0_value is not None:
+            self._r0_base = r0_value & ~((1 << 1) | (1 << 3))
+        self.initial_programming(register_list)
 
     def _generate_register_list(self, plan):
         """
@@ -388,6 +621,7 @@ class LMX2594Driver:
         r_div = plan['r_div']
         n_int = plan['n_int']
         n_frac = plan['n_frac']
+        frac_order = plan.get('frac_order', 0)
 
         # Split N into high and low parts
         n_int_high = (n_int >> 16) & 0xFFFF
@@ -399,6 +633,8 @@ class LMX2594Driver:
 
         # CHDIV code for register 75
         chdiv_code = self._chdiv_to_code(chdiv)
+
+        pfd_dly_sel = self._select_pfd_dly_sel(plan['f_vco'], frac_order)
 
         # Full register configuration based on vendor example
         # Format: (address, data) where data includes the base value + calculated fields
@@ -440,7 +676,7 @@ class LMX2594Driver:
             (34, (0x220000 + n_int_high) & 0xFFFF),  # PLL_N_H
             (35, 0x230004 & 0xFFFF),  # PLL_N mid
             (36, (0x240000 + n_int_low) & 0xFFFF),   # PLL_N_L
-            (37, 0x250004 & 0xFFFF),  # MASH_SEED_EN, PFD_DLY_SEL
+            (37, (0x0004 | ((pfd_dly_sel & 0x3F) << 8)) & 0xFFFF),  # MASH_SEED_EN, PFD_DLY_SEL
             (38, (0x260000 + n_frac_high) & 0xFFFF), # PLL_DEN_H
             (39, (0x270000 + 1) & 0xFFFF),           # PLL_DEN_L
             (40, (0x280000 + n_frac_high) & 0xFFFF), # MASH_SEED_H

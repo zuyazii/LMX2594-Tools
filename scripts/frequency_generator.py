@@ -17,7 +17,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 from usb2anyapi import USB2ANYInterface
-from lmx2594 import LMX2594Driver, LMX2594Error
+from lmx2594 import LMX2594Driver, LMX2594Error, build_registers_from_template
 
 def parse_frequency(freq_str):
     """Parse frequency string with optional units (Hz, kHz, MHz, GHz)"""
@@ -34,6 +34,63 @@ def parse_frequency(freq_str):
     else:
         # Assume Hz if no unit specified
         return float(freq_str)
+
+def parse_register_values(path, debug=False):
+    """
+    Parse register values file with lines like: R112 0x700000
+    Returns (register_list, r0_value, reg_map)
+    """
+    import re
+    register_list = []
+    reg_map = {}
+    r0_value = None
+
+    with open(path, 'r', encoding='utf-8', errors='ignore') as handle:
+        for line in handle:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            match = re.match(r'^R(\d+)\s+0x([0-9A-Fa-f]+)$', line)
+            if not match:
+                continue
+            addr = int(match.group(1))
+            full = int(match.group(2), 16)
+            data = full & 0xFFFF
+            register_list.append((addr, data))
+            reg_map[addr] = data
+            if addr == 0:
+                r0_value = data
+            if debug and ((full >> 16) & 0x7F) not in (addr, 0):
+                print(f"Warning: R{addr} value 0x{full:06X} has mismatched address field")
+
+    if not register_list:
+        raise ValueError(f"No register values found in {path}")
+
+    return register_list, r0_value, reg_map
+
+def compute_pfd_from_registers(f_osc, reg_map):
+    """
+    Compute fPD using fPD = fOSC * (1 + OSC_2X) * MULT / (PLL_R_PRE * PLL_R)
+    """
+    osc_2x = (reg_map.get(9, 0) >> 12) & 0x1
+    mult = (reg_map.get(10, 0) >> 7) & 0x1F
+    pll_r = (reg_map.get(11, 0) >> 4) & 0xFF
+    pll_r_pre = reg_map.get(12, 0) & 0xFF
+
+    if mult == 0:
+        mult = 1
+    if pll_r == 0:
+        pll_r = 1
+    if pll_r_pre == 0:
+        pll_r_pre = 1
+
+    f_pd = f_osc * (1 + osc_2x) * mult / (pll_r_pre * pll_r)
+    return f_pd, osc_2x, mult, pll_r_pre, pll_r
+
+
+def reg_map_to_list(reg_map):
+    """Convert a register map dict {addr: data} to list[(addr, data)]"""
+    return [(addr, data & 0xFFFF) for addr, data in reg_map.items()]
 
 def main():
     parser = argparse.ArgumentParser(
@@ -94,6 +151,12 @@ Examples:
     )
 
     parser.add_argument(
+        '--readback',
+        action='store_true',
+        help='Enable SPI readback checks (requires MUXout wired for readback)'
+    )
+
+    parser.add_argument(
         '--auto-recal',
         action='store_true',
         default=True,
@@ -145,6 +208,16 @@ Examples:
         help='Use mock hardware interface for testing (bypasses USB2ANY)'
     )
 
+    parser.add_argument(
+        '--register-values',
+        help='Path to a register values file (e.g., examples/register-values/HexRegisterValues3600.txt)'
+    )
+
+    parser.add_argument(
+        '--template-registers',
+        help='Template register file used for non-PLL defaults (default: 3.6 GHz template)'
+    )
+
     args = parser.parse_args()
 
     # Import required modules
@@ -165,7 +238,7 @@ Examples:
 
     # Parse frequencies
     try:
-        f_target = parse_frequency(args.freq)
+        f_target = parse_frequency(args.freq) if args.freq else None
         f_osc = parse_frequency(args.fosc)
         pfd_target = parse_frequency(args.pfd)
     except ValueError as e:
@@ -173,28 +246,21 @@ Examples:
         return 1
 
     # Test register generation and exit if requested
+    default_template = args.template_registers
+    if not default_template:
+        default_template = os.path.abspath(os.path.join(script_dir, '..', 'examples', 'register-values', 'HexRegisterValues3600.txt'))
+
     if args.test_registers:
+        if f_target is None:
+            print("ERROR: --freq is required for --test-registers when using the PLL calculator")
+            return 1
         try:
-            from usb2anyapi import USB2ANYInterface
-            from lmx2594 import LMX2594Driver, LMX2594Error
-
-            # Create a mock LMX2594 driver to test register generation
-            class MockUSB2ANY:
-                def spi_write_read(self, data):
-                    return 0, b'\x00\x00\x00'
-
-            mock_usb2any = MockUSB2ANY()
-            lmx = LMX2594Driver(mock_usb2any)
-
-            # Test frequency plan
-            plan = lmx.compute_frequency_plan(f_target, f_osc, pfd_target)
+            template_list, template_r0, template_map = parse_register_values(default_template, debug=args.debug)
+            reg_map, plan = build_registers_from_template(f_target, f_osc, template_map)
+            register_list = reg_map_to_list(reg_map)
             print(f"Frequency plan: {plan}")
+            print(f"Generated {len(register_list)} registers from template {default_template}")
 
-            # Test register list generation
-            register_list = lmx._generate_register_list(plan)
-            print(f"Generated {len(register_list)} registers")
-
-            # Check for invalid addresses
             invalid_addrs = [addr for addr, data in register_list if addr < 0 or addr > 127]
             if invalid_addrs:
                 print(f"ERROR: Invalid register addresses found: {invalid_addrs}")
@@ -210,9 +276,10 @@ Examples:
             return 1
 
     print(f"LMX2594 Frequency Generator")
-    print(f"Target frequency: {f_target/1e9:.3f} GHz")
+    if f_target is not None:
+        print(f"Target frequency: {f_target/1e9:.3f} GHz")
     print(f"Reference oscillator: {f_osc/1e6:.1f} MHz")
-    print(f"Target PFD: {pfd_target/1e6:.1f} MHz")
+    print(f"Template defaults: {default_template}")
     print(f"Auto-recalibration: {'enabled' if args.auto_recal else 'disabled'}")
     print()
     print("Hardware Requirements Check:")
@@ -222,6 +289,10 @@ Examples:
     print("- +5V power supply should be connected to LMX2594")
     print("- Blue lock LED should turn ON after successful programming")
     print()
+
+    if not args.register_values and f_target is None:
+        print("ERROR: --freq is required unless you supply --register-values")
+        return 1
 
     # Setup signal handler for clean exit
     running = True
@@ -251,23 +322,41 @@ Examples:
             usb2any = MockUSB2ANY()
         else:
             print("Connecting to USB2ANY...")
-            usb2any = USB2ANYInterface(args.serial)
+            usb2any = USB2ANYInterface(args.serial, debug=args.debug)
             usb2any.connect()
 
         # Create LMX2594 driver
-        lmx = LMX2594Driver(usb2any)
+        lmx = LMX2594Driver(usb2any, readback_enabled=args.readback, debug=args.debug)
 
-        # Compute frequency plan
-        print("Computing frequency plan...")
-        plan = lmx.compute_frequency_plan(f_target, f_osc, pfd_target)
+        plan = None
+        register_list = None
+        r0_value = None
+        reg_map = None
+        if args.register_values:
+            print("Using register values file...")
+            register_list, r0_value, reg_map = parse_register_values(args.register_values, debug=args.debug)
+            f_pd, osc_2x, mult, pll_r_pre, pll_r = compute_pfd_from_registers(f_osc, reg_map)
+            print(f"Computed fPD (from file): {f_pd/1e6:.1f} MHz")
+            print(f"OSC_2X: {osc_2x} MULT: {mult} PLL_R_PRE: {pll_r_pre} PLL_R: {pll_r}")
+            print(f"Loaded {len(register_list)} registers")
+            print()
+        else:
+            if f_target is None:
+                print("ERROR: --freq is required when computing registers from a template")
+                return 1
+            print("Computing PLL fields from template defaults...")
+            _, r0_value, template_map = parse_register_values(default_template, debug=args.debug)
+            reg_map, plan = build_registers_from_template(f_target, f_osc, template_map)
+            register_list = reg_map_to_list(reg_map)
 
-        print(f"VCO frequency: {plan['f_vco']/1e9:.3f} GHz")
-        print(f"Channel divider: {plan['chdiv']}")
-        print(f"R divider: {plan['r_div']}")
-        print(f"PFD frequency: {plan['pfd_freq']/1e6:.1f} MHz")
-        print(f"N integer: {plan['n_int']}")
-        print(f"N fractional: {plan['n_frac']}")
-        print()
+            chdiv_desc = f"{plan['chdiv_value']} (code {plan['chdiv_code']})" if plan['chdiv_code'] is not None else "bypass"
+            print(f"fPD: {plan['f_pd']/1e6:.1f} MHz (OSC_2X={plan['osc_2x']} MULT={plan['mult']} PLL_R_PRE={plan['pll_r_pre']} PLL_R={plan['pll_r']})")
+            print(f"VCO frequency: {plan['f_vco']/1e9:.3f} GHz via CHDIV {chdiv_desc}")
+            print(f"N: {plan['n_int']}  NUM/DEN: {plan['num']}/{plan['den']}")
+            print(f"Generated {len(register_list)} registers from template defaults")
+            if args.pfd and abs(plan['f_pd'] - pfd_target) > 1:
+                print(f"Note: template-derived fPD ({plan['f_pd']/1e6:.1f} MHz) differs from requested --pfd ({pfd_target/1e6:.1f} MHz)")
+            print()
 
         if args.dry_run:
             print("Dry run - exiting without programming device")
@@ -276,7 +365,10 @@ Examples:
         # Program the device
         print("Programming LMX2594...")
         try:
-            lmx.program_frequency(f_target, f_osc, pfd_target)
+            if register_list is not None:
+                lmx.program_registers(register_list, r0_value=r0_value)
+            else:
+                lmx.program_frequency(f_target, f_osc, pfd_target)
         except LMX2594Error as e:
             if not args.force:
                 print(f"Programming failed: {e}")
