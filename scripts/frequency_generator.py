@@ -35,6 +35,15 @@ def parse_frequency(freq_str):
         # Assume Hz if no unit specified
         return float(freq_str)
 
+def build_frequency_sweep(start_freq, end_freq, points):
+    """Build a list of sweep frequencies including endpoints."""
+    if points < 1:
+        raise ValueError("points must be >= 1")
+    if points == 1:
+        return [start_freq]
+    step = (end_freq - start_freq) / (points - 1)
+    return [start_freq + step * i for i in range(points)]
+
 def parse_register_values(path, debug=False):
     """
     Parse register values file with lines like: R112 0x700000
@@ -112,6 +121,15 @@ Examples:
 
   # Disable auto-recalibration
   python frequency_generator.py --freq 3.6GHz --no-auto-recal
+
+  # Sweep a range quickly
+  python frequency_generator.py --start-freq 2.0GHz --end-freq 2.2GHz --points 5
+
+  # Raise SPI clock for faster programming
+  python frequency_generator.py --freq 3.6GHz --spi-clock 2MHz
+
+  # Sweep with delta register updates only
+  python frequency_generator.py --start-freq 3.2GHz --end-freq 3.6GHz --points 200 --delta-update
         """
     )
 
@@ -119,6 +137,22 @@ Examples:
         '--freq', '-f',
         required=False,
         help='Target output frequency (e.g., 3.6GHz, 2400MHz, 1000000000)'
+    )
+
+    parser.add_argument(
+        '--start-freq',
+        help='Sweep start frequency (e.g., 2.0GHz)'
+    )
+
+    parser.add_argument(
+        '--end-freq',
+        help='Sweep end frequency (e.g., 2.2GHz)'
+    )
+
+    parser.add_argument(
+        '--points',
+        type=int,
+        help='Number of points in sweep range (inclusive of endpoints)'
     )
 
     parser.add_argument(
@@ -136,6 +170,18 @@ Examples:
     parser.add_argument(
         '--serial',
         help='USB2ANY serial number (if multiple devices connected)'
+    )
+
+    parser.add_argument(
+        '--spi-clock',
+        default='400kHz',
+        help='USB2ANY SPI clock (e.g., 400kHz, 1MHz, 2MHz; default: 400kHz)'
+    )
+
+    parser.add_argument(
+        '--delta-update',
+        action='store_true',
+        help='In sweep mode, only write registers that change between points'
     )
 
     parser.add_argument(
@@ -239,11 +285,36 @@ Examples:
     # Parse frequencies
     try:
         f_target = parse_frequency(args.freq) if args.freq else None
+        f_start = parse_frequency(args.start_freq) if args.start_freq else None
+        f_end = parse_frequency(args.end_freq) if args.end_freq else None
         f_osc = parse_frequency(args.fosc)
         pfd_target = parse_frequency(args.pfd)
+        spi_clock = parse_frequency(args.spi_clock)
     except ValueError as e:
         print(f"Error parsing frequency: {e}")
         return 1
+
+    if spi_clock < 10e3 or spi_clock > 8e6:
+        print("ERROR: --spi-clock must be between 10kHz and 8MHz (USB2ANY SPI limits)")
+        return 1
+
+    sweep_requested = any([args.start_freq, args.end_freq, args.points is not None])
+    sweep_freqs = None
+    if sweep_requested:
+        if args.freq:
+            print("ERROR: --freq cannot be used with --start-freq/--end-freq/--points")
+            return 1
+        if f_start is None or f_end is None or args.points is None:
+            print("ERROR: --start-freq, --end-freq, and --points are required for a sweep")
+            return 1
+        if args.register_values:
+            print("ERROR: --register-values cannot be used with sweep mode")
+            return 1
+        try:
+            sweep_freqs = build_frequency_sweep(f_start, f_end, args.points)
+        except ValueError as e:
+            print(f"ERROR: {e}")
+            return 1
 
     # Test register generation and exit if requested
     default_template = args.template_registers
@@ -251,12 +322,13 @@ Examples:
         default_template = os.path.abspath(os.path.join(script_dir, '..', 'examples', 'register-values', 'HexRegisterValues3600.txt'))
 
     if args.test_registers:
-        if f_target is None:
+        test_freq = f_target if f_target is not None else (sweep_freqs[0] if sweep_freqs else None)
+        if test_freq is None:
             print("ERROR: --freq is required for --test-registers when using the PLL calculator")
             return 1
         try:
             template_list, template_r0, template_map = parse_register_values(default_template, debug=args.debug)
-            reg_map, plan = build_registers_from_template(f_target, f_osc, template_map)
+            reg_map, plan = build_registers_from_template(test_freq, f_osc, template_map)
             register_list = reg_map_to_list(reg_map)
             print(f"Frequency plan: {plan}")
             print(f"Generated {len(register_list)} registers from template {default_template}")
@@ -278,6 +350,10 @@ Examples:
     print(f"LMX2594 Frequency Generator")
     if f_target is not None:
         print(f"Target frequency: {f_target/1e9:.3f} GHz")
+    if sweep_freqs:
+        print(f"Sweep start: {sweep_freqs[0]/1e9:.3f} GHz")
+        print(f"Sweep end: {sweep_freqs[-1]/1e9:.3f} GHz")
+        print(f"Sweep points: {len(sweep_freqs)}")
     print(f"Reference oscillator: {f_osc/1e6:.1f} MHz")
     print(f"Template defaults: {default_template}")
     print(f"Auto-recalibration: {'enabled' if args.auto_recal else 'disabled'}")
@@ -290,7 +366,7 @@ Examples:
     print("- Blue lock LED should turn ON after successful programming")
     print()
 
-    if not args.register_values and f_target is None:
+    if not args.register_values and f_target is None and not sweep_freqs:
         print("ERROR: --freq is required unless you supply --register-values")
         return 1
 
@@ -322,11 +398,11 @@ Examples:
             usb2any = MockUSB2ANY()
         else:
             print("Connecting to USB2ANY...")
-            usb2any = USB2ANYInterface(args.serial, debug=args.debug)
+            usb2any = USB2ANYInterface(args.serial, debug=args.debug, clock_freq=spi_clock)
             usb2any.connect()
 
         # Create LMX2594 driver
-        lmx = LMX2594Driver(usb2any, readback_enabled=args.readback, debug=args.debug)
+        lmx = LMX2594Driver(usb2any, readback_enabled=args.readback, debug=args.debug, f_osc=f_osc)
 
         plan = None
         register_list = None
@@ -341,28 +417,86 @@ Examples:
             print(f"Loaded {len(register_list)} registers")
             print()
         else:
-            if f_target is None:
-                print("ERROR: --freq is required when computing registers from a template")
-                return 1
-            print("Computing PLL fields from template defaults...")
-            _, r0_value, template_map = parse_register_values(default_template, debug=args.debug)
-            reg_map, plan = build_registers_from_template(f_target, f_osc, template_map)
-            register_list = reg_map_to_list(reg_map)
+            if not sweep_freqs:
+                if f_target is None:
+                    print("ERROR: --freq is required when computing registers from a template")
+                    return 1
+                print("Computing PLL fields from template defaults...")
+                _, r0_value, template_map = parse_register_values(default_template, debug=args.debug)
+                reg_map, plan = build_registers_from_template(f_target, f_osc, template_map)
+                register_list = reg_map_to_list(reg_map)
 
-            chdiv_desc = f"{plan['chdiv_value']} (code {plan['chdiv_code']})" if plan['chdiv_code'] is not None else "bypass"
-            print(f"fPD: {plan['f_pd']/1e6:.1f} MHz (OSC_2X={plan['osc_2x']} MULT={plan['mult']} PLL_R_PRE={plan['pll_r_pre']} PLL_R={plan['pll_r']})")
-            print(f"VCO frequency: {plan['f_vco']/1e9:.3f} GHz via CHDIV {chdiv_desc}")
-            print(f"N: {plan['n_int']}  NUM/DEN: {plan['num']}/{plan['den']}")
-            print(f"Generated {len(register_list)} registers from template defaults")
-            if args.pfd and abs(plan['f_pd'] - pfd_target) > 1:
-                print(f"Note: template-derived fPD ({plan['f_pd']/1e6:.1f} MHz) differs from requested --pfd ({pfd_target/1e6:.1f} MHz)")
-            print()
+                chdiv_desc = f"{plan['chdiv_value']} (code {plan['chdiv_code']})" if plan['chdiv_code'] is not None else "bypass"
+                print(f"fPD: {plan['f_pd']/1e6:.1f} MHz (OSC_2X={plan['osc_2x']} MULT={plan['mult']} PLL_R_PRE={plan['pll_r_pre']} PLL_R={plan['pll_r']})")
+                print(f"VCO frequency: {plan['f_vco']/1e9:.3f} GHz via CHDIV {chdiv_desc}")
+                print(f"N: {plan['n_int']}  NUM/DEN: {plan['num']}/{plan['den']}")
+                print(f"Generated {len(register_list)} registers from template defaults")
+                if args.pfd and abs(plan['f_pd'] - pfd_target) > 1:
+                    print(f"Note: template-derived fPD ({plan['f_pd']/1e6:.1f} MHz) differs from requested --pfd ({pfd_target/1e6:.1f} MHz)")
+                print()
 
-        if args.dry_run:
+        if args.dry_run and not sweep_freqs:
             print("Dry run - exiting without programming device")
             return 0
 
-        # Program the device
+        if sweep_freqs:
+            print("Computing PLL fields from template defaults...")
+            _, r0_value, template_map = parse_register_values(default_template, debug=args.debug)
+
+            if args.dry_run:
+                for freq in sweep_freqs:
+                    reg_map, plan = build_registers_from_template(freq, f_osc, template_map)
+                    chdiv_desc = f"{plan['chdiv_value']} (code {plan['chdiv_code']})" if plan['chdiv_code'] is not None else "bypass"
+                    print(f"{freq/1e9:.3f} GHz -> VCO {plan['f_vco']/1e9:.3f} GHz CHDIV {chdiv_desc} N {plan['n_int']} NUM/DEN {plan['num']}/{plan['den']}")
+                print("Dry run - exiting without programming device")
+                return 0
+
+            # Program first frequency fully, then fast update for the rest.
+            first_freq = sweep_freqs[0]
+            reg_map, plan = build_registers_from_template(first_freq, f_osc, template_map)
+            register_list = reg_map_to_list(reg_map)
+            print(f"Programming initial frequency {first_freq/1e9:.3f} GHz...")
+            try:
+                lmx.program_registers(register_list, r0_value=r0_value)
+            except LMX2594Error as e:
+                if not args.force:
+                    print(f"Programming failed: {e}")
+                    return 1
+                else:
+                    print(f"Programming error (continuing due to --force): {e}")
+
+            lmx.configure_muxout_lock_detect()
+
+            if args.lock_timeout > 0:
+                print(f"Waiting for lock (timeout: {args.lock_timeout}s)...")
+                if not lmx.wait_for_lock(args.lock_timeout):
+                    print("ERROR: Device failed to lock within timeout period")
+                    if not args.auto_recal:
+                        return 1
+                    else:
+                        print("Attempting recalibration...")
+
+            prev_reg_map = reg_map
+            for freq in sweep_freqs[1:]:
+                reg_map, plan = build_registers_from_template(freq, f_osc, template_map)
+                if args.delta_update:
+                    update_addrs = (31, 34, 36, 38, 39, 42, 43, 75)
+                    write_addrs = [addr for addr in update_addrs if reg_map.get(addr) != prev_reg_map.get(addr)]
+                    if not write_addrs:
+                        print(f"Updating to {freq/1e9:.3f} GHz... (no register changes)")
+                        prev_reg_map = reg_map
+                        continue
+                    print(f"Updating to {freq/1e9:.3f} GHz...")
+                    lmx.fast_update_frequency(reg_map, write_addrs=write_addrs)
+                else:
+                    print(f"Updating to {freq/1e9:.3f} GHz...")
+                    lmx.fast_update_frequency(reg_map)
+                prev_reg_map = reg_map
+
+            print("Sweep complete")
+            return 0
+
+        # Program the device (single frequency)
         print("Programming LMX2594...")
         try:
             if register_list is not None:

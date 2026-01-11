@@ -214,12 +214,12 @@ def GetSerialNumberFromHandle(index):
 
 # High-level interface for LMX2594 SPI communication
 class USB2ANYInterface:
-    def __init__(self, serial_number=None, debug=False):
+    def __init__(self, serial_number=None, debug=False, clock_freq=400000):
         self.handle = None
         self.serial_number = serial_number
         self.connected = False
         self.CE_PIN = 7
-        self.clock_freq = 400000
+        self.clock_freq = clock_freq
         self.spi_mode = 0
         self.debug = debug
 
@@ -256,7 +256,7 @@ class USB2ANYInterface:
             print(f"Warning: Power enable failed: {e} (continuing without power control)")
 
         # Configure SPI
-        self.configure_spi()
+        self.configure_spi(clock_freq=self.clock_freq)
 
         # Try to enable CE pin (may not be available in all DLL versions)
         try:

@@ -127,13 +127,15 @@ class LMX2594Error(Exception):
     pass
 
 class LMX2594Driver:
-    def __init__(self, usb2any_interface, readback_enabled=False, debug=False):
+    def __init__(self, usb2any_interface, readback_enabled=False, debug=False, f_osc=50e6, vco_cal_time_s=25e-6):
         self.usb2any = usb2any_interface
         self.registers = {}  # Cache of register values
         self.readback_enabled = readback_enabled
         self._r0_base = None
         self._readback_warning_emitted = False
         self.debug = debug
+        self.f_osc = f_osc
+        self.vco_cal_time_s = vco_cal_time_s
 
         # R0 reserved bit pattern per datasheet (D13..D10 = 1001, D4 = 1)
         self._r0_fixed_bits = (1 << 13) | (1 << 10) | (1 << 4)
@@ -166,9 +168,9 @@ class LMX2594Driver:
         byte2 = word & 0xFF          # LSB: low 8 bits of data
 
         packet = bytes([byte0, byte1, byte2])
-        # Debug: print packet being sent
-        operation = "READ" if read else "WRITE"
-        print(f"DEBUG: {operation} R{addr} (0x{addr:02X}) with data 0x{data:04X} -> packet: {packet.hex()}")
+        if self.debug:
+            operation = "READ" if read else "WRITE"
+            print(f"DEBUG: {operation} R{addr} (0x{addr:02X}) with data 0x{data:04X} -> packet: {packet.hex()}")
 
         return packet
 
@@ -478,9 +480,10 @@ class LMX2594Driver:
         self.write_register(REG_RESET, fcal_r0, verify=False)
         print("Set FCAL_EN=1, starting VCO calibration")
 
-        # 6. Wait for calibration to complete (≥20 µs, conservatively use 1ms)
-        time.sleep(0.001)
-        print("VCO calibration completed")
+        # 6. Wait for calibration based on CAL_CLK_DIV and LD_DLY
+        delay_s = self._estimate_fcal_delay()
+        time.sleep(delay_s)
+        print(f"VCO calibration completed (waited {delay_s*1e6:.1f}us)")
 
     def recalibrate_vco(self):
         """
@@ -501,12 +504,34 @@ class LMX2594Driver:
         self.write_register(REG_RESET, fcal_r0, verify=False)
         print("Set FCAL_EN=1 for recalibration")
 
-        # 2. Wait ≥20 µs
-        time.sleep(20e-6)
-        print("Waited 20µs for recalibration")
+        # 2. Wait for calibration based on CAL_CLK_DIV and LD_DLY
+        delay_s = self._estimate_fcal_delay()
+        time.sleep(delay_s)
+        print(f"Waited {delay_s*1e6:.1f}us for recalibration")
 
         # 3. Check lock status (will be done by caller)
         return self.is_locked()
+
+    def fast_update_frequency(self, reg_map, settle_delay=None, write_addrs=None):
+        """
+        Quickly update frequency-related registers and trigger FCAL.
+
+        This follows the recommended flow for frequency changes:
+        update N/NUM/DEN (and CHDIV when needed) then set FCAL_EN.
+        """
+        update_addrs = write_addrs if write_addrs is not None else (31, 34, 36, 38, 39, 42, 43, 75)
+        for addr in update_addrs:
+            if addr in reg_map:
+                self.write_register(addr, reg_map[addr], verify=False)
+
+        if self._r0_base is None:
+            self._r0_base = self._build_r0_base(50e6, muxout_lock_detect=True)
+
+        fcal_r0 = self._r0_base | (1 << 3)
+        self.write_register(REG_RESET, fcal_r0, verify=False)
+        if settle_delay is None:
+            settle_delay = self._estimate_fcal_delay()
+        time.sleep(settle_delay)
 
     def is_locked(self):
         """
@@ -713,6 +738,26 @@ class LMX2594Driver:
             48: 8, 64: 9, 72: 10, 96: 11, 128: 12, 192: 13
         }
         return chdiv_codes.get(chdiv, 0)
+
+    def _estimate_fcal_delay(self):
+        """
+        Estimate VCO calibration wait based on CAL_CLK_DIV and LD_DLY.
+
+        The state machine clock is fOSC / CAL_CLK_DIV. CAL_CLK_DIV encodes a
+        divider of 1, 2, 4, 8 for values 0..3 (per the datasheet guidance).
+        LD_DLY is in state machine cycles and is added to the true calibration
+        time. Use a typical tVCOCAL estimate plus the LD_DLY contribution.
+        """
+        reg1 = self.registers.get(1, 0)
+        cal_clk_div_code = reg1 & 0x7
+        divider = 1 << cal_clk_div_code
+        f_sm = self.f_osc / divider if divider > 0 else self.f_osc
+
+        reg60 = self.registers.get(60, 0)
+        ld_dly = reg60 & 0xFFFF
+        ld_dly_s = ld_dly / f_sm if f_sm > 0 else 0.0
+
+        return max(0.0, self.vco_cal_time_s + ld_dly_s)
 
     def wait_for_lock(self, timeout=5.0, check_interval=0.1):
         """
