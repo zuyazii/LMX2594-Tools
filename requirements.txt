@@ -1,0 +1,5 @@
+pyserial>=3.5
+tsapython
+# GUI runs on 64-bit Python. Prefer PySide6; PyQt5 is a fallback.
+PySide6>=6.5
+PyQt5>=5.15

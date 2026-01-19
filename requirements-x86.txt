@@ -1,0 +1,3 @@
+pyserial>=3.5
+# 32-bit worker environment for USB2ANY/LMX2594 (no GUI/tinySA deps).
+# USB2ANY uses the bundled DLL and local scripts, so no extra pip packages are required.

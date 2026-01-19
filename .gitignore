@@ -1,7 +1,14 @@
-.venv/
-scripts/__pycache__/
+# Virtual environment
+.venv*/
+# Cursor configuration
 .cursor/
+# Cache files
+scripts/__pycache__/
+# Example repos online
 examples/
-
+# Output files
+output/
+# GUI configuration file
+.lmx_gui_config.json
 # Documents
 docs/

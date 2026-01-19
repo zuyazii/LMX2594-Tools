@@ -28,6 +28,42 @@ Generate 3.6 GHz continuous output:
 python scripts/frequency_generator.py --freq 3.6GHz
 ```
 
+### tinySA Antenna Automation
+
+Automate tinySA measurements with the LMX2594 to capture a golden sample and test antennas
+against it.
+
+Requirements:
+
+```bash
+pip install tsapython pyserial
+```
+
+Examples:
+
+```bash
+# List available serial ports
+python scripts/tinysa_antenna_test.py list-ports
+
+# Capture a golden sample across 3.4-3.6 GHz in 10 MHz steps
+python scripts/tinysa_antenna_test.py golden --start-freq 3.4GHz --stop-freq 3.6GHz --step 10MHz \
+  --out-json output/golden_sample.json --out-csv output/golden_sample.csv
+
+# Direct capture for LMX->tinySA validation (no pass/fail logic)
+python scripts/tinysa_antenna_test.py direct --start-freq 3.4GHz --stop-freq 3.6GHz --step 10MHz \
+  --out-json output/direct_capture.json --out-csv output/direct_capture.csv
+
+# Test another antenna with a +/-5 dB tolerance
+python scripts/tinysa_antenna_test.py test --golden-json output/golden_sample.json --tolerance-db 5 \
+  --out-json output/test_result.json --out-csv output/test_result.csv
+```
+
+Notes:
+- Use `--port COM#` to specify the tinySA serial port manually.
+- Use `--no-lmx` if an external signal source is already configured.
+- Adjust `--settle-us` to match the required LMX settling time.
+- For `direct` mode, use proper RF attenuation between LMX and tinySA.
+
 ### Advanced Usage
 
 ```bash
@@ -45,6 +81,9 @@ python frequency_generator.py --freq 3.6GHz --no-auto-recal
 
 # Custom timeouts and monitoring intervals
 python frequency_generator.py --freq 3.6GHz --lock-timeout 10.0 --monitor-interval 0.5
+
+# Sweep with per-step lock waits and dwell time
+python frequency_generator.py --start-freq 3.2GHz --end-freq 3.6GHz --points 200 --wait-lock --dwell-ms 10
 
 # Force programming even if verification fails
 python frequency_generator.py --freq 3.6GHz --force
@@ -76,6 +115,10 @@ python frequency_generator.py --freq 3.6GHz --force
 - `--lock-timeout`: Initial lock detection timeout in seconds (default: 5.0)
 
 - `--monitor-interval`: Lock monitoring interval in seconds (default: 1.0)
+
+- `--wait-lock`: In sweep mode, wait for PLL lock after each frequency update
+
+- `--dwell-ms`: In sweep mode, dwell time after each frequency update in milliseconds (default: 0)
 
 ## Frequency Planning Algorithm
 
