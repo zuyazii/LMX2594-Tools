@@ -7,17 +7,25 @@ Generates continuous frequency output with automatic lock detection and VCO reca
 """
 
 import argparse
+import csv
+import json
+import os
+import signal
 import sys
 import time
-import signal
-import os
 
 # Add scripts directory to Python path
 script_dir = os.path.dirname(os.path.abspath(__file__))
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 from usb2anyapi import USB2ANYInterface
-from lmx2594 import LMX2594Driver, LMX2594Error, build_registers_from_template
+from lmx2594 import (
+    LMX2594Driver,
+    LMX2594Error,
+    OUTA_PWR_DEFAULT,
+    apply_outa_pwr,
+    build_registers_from_template,
+)
 
 def parse_frequency(freq_str):
     """Parse frequency string with optional units (Hz, kHz, MHz, GHz)"""
@@ -101,6 +109,69 @@ def reg_map_to_list(reg_map):
     """Convert a register map dict {addr: data} to list[(addr, data)]"""
     return [(addr, data & 0xFFFF) for addr, data in reg_map.items()]
 
+
+def load_outa_pwr_map(path):
+    """Load OUTA_PWR mapping from CSV or JSON."""
+    _, ext = os.path.splitext(path.lower())
+    entries = []
+
+    if ext == ".json":
+        with open(path, "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+        if isinstance(data, dict):
+            for key, value in data.items():
+                entries.append((float(key), int(value)))
+        elif isinstance(data, list):
+            for item in data:
+                if not isinstance(item, dict):
+                    continue
+                if "dbm" in item and "outa_pwr" in item:
+                    entries.append((float(item["dbm"]), int(item["outa_pwr"])))
+        else:
+            raise ValueError("Unsupported JSON format for OUTA_PWR mapping")
+    else:
+        with open(path, "r", newline="", encoding="utf-8") as handle:
+            reader = csv.reader(handle)
+            for row in reader:
+                if not row or len(row) < 2:
+                    continue
+                try:
+                    dbm = float(row[0])
+                    code = int(row[1])
+                except ValueError:
+                    continue
+                entries.append((dbm, code))
+
+    if not entries:
+        raise ValueError("OUTA_PWR mapping file contains no entries")
+
+    for _dbm, code in entries:
+        if not 0 <= code <= 63:
+            raise ValueError("OUTA_PWR mapping contains code outside 0..63")
+
+    return sorted(entries, key=lambda item: item[0])
+
+
+def map_dbm_to_outa_pwr(dbm, mapping):
+    """Linearly interpolate OUTA_PWR code from a dBm mapping table."""
+    if not mapping:
+        raise ValueError("OUTA_PWR mapping is empty")
+
+    if dbm <= mapping[0][0]:
+        return mapping[0][1]
+    if dbm >= mapping[-1][0]:
+        return mapping[-1][1]
+
+    for (dbm_lo, code_lo), (dbm_hi, code_hi) in zip(mapping, mapping[1:]):
+        if dbm_lo <= dbm <= dbm_hi:
+            if dbm_hi == dbm_lo:
+                return code_lo
+            ratio = (dbm - dbm_lo) / (dbm_hi - dbm_lo)
+            code = code_lo + (code_hi - code_lo) * ratio
+            return int(round(code))
+
+    return mapping[-1][1]
+
 def main():
     parser = argparse.ArgumentParser(
         description="LMX2594 Frequency Generator via USB2ANY SPI",
@@ -122,6 +193,12 @@ Examples:
   # Disable auto-recalibration
   python frequency_generator.py --freq 3.6GHz --no-auto-recal
 
+  # Set output power code directly (OUTA_PWR 0-63)
+  python frequency_generator.py --freq 3.6GHz --outa-pwr 50
+
+  # Map desired dBm to OUTA_PWR using a mapping file
+  python frequency_generator.py --freq 3.6GHz --outa-db -3 --outa-map outa_map.csv
+
   # Sweep a range quickly
   python frequency_generator.py --start-freq 2.0GHz --end-freq 2.2GHz --points 5
 
@@ -130,6 +207,9 @@ Examples:
 
   # Sweep with delta register updates only
   python frequency_generator.py --start-freq 3.2GHz --end-freq 3.6GHz --points 200 --delta-update
+
+  # Sweep with per-step lock wait and dwell time
+  python frequency_generator.py --start-freq 3.2GHz --end-freq 3.6GHz --points 200 --wait-lock --dwell-ms 10
         """
     )
 
@@ -146,8 +226,8 @@ Examples:
 
     parser.add_argument(
         '--end-freq',
-        help='Sweep end frequency (e.g., 2.2GHz)'
-    )
+         help='Sweep end frequency (e.g., 2.2GHz)'
+     )
 
     parser.add_argument(
         '--points',
@@ -167,6 +247,22 @@ Examples:
         help='Target PFD frequency (default: 50MHz)'
     )
 
+    outa_group = parser.add_mutually_exclusive_group(required=False)
+    outa_group.add_argument(
+        '--outa-pwr',
+        type=int,
+        help='OUTA_PWR code (0-63). Overrides mapping.'
+    )
+    outa_group.add_argument(
+        '--outa-db',
+        type=float,
+        help='Desired output power in dBm (requires --outa-map)'
+    )
+    parser.add_argument(
+        '--outa-map',
+        help='CSV or JSON mapping file for --outa-db (columns: dbm,outa_pwr)'
+    )
+
     parser.add_argument(
         '--serial',
         help='USB2ANY serial number (if multiple devices connected)'
@@ -182,6 +278,19 @@ Examples:
         '--delta-update',
         action='store_true',
         help='In sweep mode, only write registers that change between points'
+    )
+
+    parser.add_argument(
+        '--wait-lock',
+        action='store_true',
+        help='In sweep mode, wait for PLL lock after each frequency update'
+    )
+
+    parser.add_argument(
+        '--dwell-ms',
+        type=float,
+        default=0.0,
+        help='In sweep mode, dwell time after each frequency update in milliseconds (default: 0)'
     )
 
     parser.add_argument(
@@ -294,6 +403,29 @@ Examples:
         print(f"Error parsing frequency: {e}")
         return 1
 
+    outa_pwr_override = None
+    outa_pwr_source = "default"
+    if args.outa_pwr is not None:
+        if not 0 <= args.outa_pwr <= 63:
+            print("ERROR: --outa-pwr must be between 0 and 63")
+            return 1
+        outa_pwr_override = int(args.outa_pwr)
+        outa_pwr_source = "outa-pwr"
+    elif args.outa_db is not None:
+        if not args.outa_map:
+            print("ERROR: --outa-db requires --outa-map")
+            return 1
+        try:
+            mapping = load_outa_pwr_map(args.outa_map)
+            outa_pwr_override = map_dbm_to_outa_pwr(args.outa_db, mapping)
+            outa_pwr_source = "outa-db"
+        except Exception as exc:
+            print(f"ERROR: Failed to load OUTA_PWR mapping: {exc}")
+            return 1
+    elif args.outa_map:
+        print("ERROR: --outa-map requires --outa-db")
+        return 1
+
     if spi_clock < 10e3 or spi_clock > 8e6:
         print("ERROR: --spi-clock must be between 10kHz and 8MHz (USB2ANY SPI limits)")
         return 1
@@ -321,6 +453,8 @@ Examples:
     if not default_template:
         default_template = os.path.abspath(os.path.join(script_dir, '..', 'examples', 'register-values', 'HexRegisterValues3600.txt'))
 
+    outa_pwr_value = outa_pwr_override if outa_pwr_override is not None else OUTA_PWR_DEFAULT
+
     if args.test_registers:
         test_freq = f_target if f_target is not None else (sweep_freqs[0] if sweep_freqs else None)
         if test_freq is None:
@@ -328,7 +462,9 @@ Examples:
             return 1
         try:
             template_list, template_r0, template_map = parse_register_values(default_template, debug=args.debug)
-            reg_map, plan = build_registers_from_template(test_freq, f_osc, template_map)
+            reg_map, plan = build_registers_from_template(
+                test_freq, f_osc, template_map, outa_pwr=outa_pwr_value
+            )
             register_list = reg_map_to_list(reg_map)
             print(f"Frequency plan: {plan}")
             print(f"Generated {len(register_list)} registers from template {default_template}")
@@ -354,8 +490,14 @@ Examples:
         print(f"Sweep start: {sweep_freqs[0]/1e9:.3f} GHz")
         print(f"Sweep end: {sweep_freqs[-1]/1e9:.3f} GHz")
         print(f"Sweep points: {len(sweep_freqs)}")
+        if args.wait_lock:
+            print(f"Sweep lock wait: enabled (timeout {args.lock_timeout}s)")
+        if args.dwell_ms:
+            print(f"Sweep dwell: {args.dwell_ms:.1f} ms")
     print(f"Reference oscillator: {f_osc/1e6:.1f} MHz")
     print(f"Template defaults: {default_template}")
+    if outa_pwr_override is not None:
+        print(f"OUTA_PWR: {outa_pwr_override} ({outa_pwr_source})")
     print(f"Auto-recalibration: {'enabled' if args.auto_recal else 'disabled'}")
     print()
     print("Hardware Requirements Check:")
@@ -411,6 +553,9 @@ Examples:
         if args.register_values:
             print("Using register values file...")
             register_list, r0_value, reg_map = parse_register_values(args.register_values, debug=args.debug)
+            if outa_pwr_override is not None:
+                apply_outa_pwr(reg_map, outa_pwr_override)
+                register_list = reg_map_to_list(reg_map)
             f_pd, osc_2x, mult, pll_r_pre, pll_r = compute_pfd_from_registers(f_osc, reg_map)
             print(f"Computed fPD (from file): {f_pd/1e6:.1f} MHz")
             print(f"OSC_2X: {osc_2x} MULT: {mult} PLL_R_PRE: {pll_r_pre} PLL_R: {pll_r}")
@@ -423,7 +568,9 @@ Examples:
                     return 1
                 print("Computing PLL fields from template defaults...")
                 _, r0_value, template_map = parse_register_values(default_template, debug=args.debug)
-                reg_map, plan = build_registers_from_template(f_target, f_osc, template_map)
+                reg_map, plan = build_registers_from_template(
+                    f_target, f_osc, template_map, outa_pwr=outa_pwr_value
+                )
                 register_list = reg_map_to_list(reg_map)
 
                 chdiv_desc = f"{plan['chdiv_value']} (code {plan['chdiv_code']})" if plan['chdiv_code'] is not None else "bypass"
@@ -442,10 +589,17 @@ Examples:
         if sweep_freqs:
             print("Computing PLL fields from template defaults...")
             _, r0_value, template_map = parse_register_values(default_template, debug=args.debug)
+            dwell_s = max(0.0, args.dwell_ms / 1000.0)
+            wait_lock = args.wait_lock
+            if wait_lock and args.lock_timeout <= 0:
+                print("Note: --wait-lock requested but --lock-timeout <= 0; skipping per-step lock waits.")
+                wait_lock = False
 
             if args.dry_run:
                 for freq in sweep_freqs:
-                    reg_map, plan = build_registers_from_template(freq, f_osc, template_map)
+                    reg_map, plan = build_registers_from_template(
+                        freq, f_osc, template_map, outa_pwr=outa_pwr_value
+                    )
                     chdiv_desc = f"{plan['chdiv_value']} (code {plan['chdiv_code']})" if plan['chdiv_code'] is not None else "bypass"
                     print(f"{freq/1e9:.3f} GHz -> VCO {plan['f_vco']/1e9:.3f} GHz CHDIV {chdiv_desc} N {plan['n_int']} NUM/DEN {plan['num']}/{plan['den']}")
                 print("Dry run - exiting without programming device")
@@ -453,7 +607,9 @@ Examples:
 
             # Program first frequency fully, then fast update for the rest.
             first_freq = sweep_freqs[0]
-            reg_map, plan = build_registers_from_template(first_freq, f_osc, template_map)
+            reg_map, plan = build_registers_from_template(
+                first_freq, f_osc, template_map, outa_pwr=outa_pwr_value
+            )
             register_list = reg_map_to_list(reg_map)
             print(f"Programming initial frequency {first_freq/1e9:.3f} GHz...")
             try:
@@ -477,20 +633,38 @@ Examples:
                         print("Attempting recalibration...")
 
             prev_reg_map = reg_map
+            if dwell_s > 0:
+                time.sleep(dwell_s)
+
             for freq in sweep_freqs[1:]:
-                reg_map, plan = build_registers_from_template(freq, f_osc, template_map)
+                reg_map, plan = build_registers_from_template(
+                    freq, f_osc, template_map, outa_pwr=outa_pwr_value
+                )
                 if args.delta_update:
-                    update_addrs = (31, 34, 36, 38, 39, 42, 43, 75)
+                    update_addrs = (31, 34, 36, 38, 39, 42, 43, 44, 75)
                     write_addrs = [addr for addr in update_addrs if reg_map.get(addr) != prev_reg_map.get(addr)]
                     if not write_addrs:
                         print(f"Updating to {freq/1e9:.3f} GHz... (no register changes)")
-                        prev_reg_map = reg_map
-                        continue
-                    print(f"Updating to {freq/1e9:.3f} GHz...")
-                    lmx.fast_update_frequency(reg_map, write_addrs=write_addrs)
+                    else:
+                        print(f"Updating to {freq/1e9:.3f} GHz...")
+                        lmx.fast_update_frequency(reg_map, write_addrs=write_addrs)
                 else:
                     print(f"Updating to {freq/1e9:.3f} GHz...")
                     lmx.fast_update_frequency(reg_map)
+
+                if wait_lock:
+                    if not lmx.wait_for_lock(args.lock_timeout):
+                        print("ERROR: Device failed to lock within timeout period")
+                        if not args.auto_recal:
+                            return 1
+                        else:
+                            print("Attempting recalibration...")
+                            if not lmx.recalibrate_vco():
+                                print("ERROR: Recalibration failed - lock not restored")
+                                return 1
+
+                if dwell_s > 0:
+                    time.sleep(dwell_s)
                 prev_reg_map = reg_map
 
             print("Sweep complete")
@@ -502,7 +676,7 @@ Examples:
             if register_list is not None:
                 lmx.program_registers(register_list, r0_value=r0_value)
             else:
-                lmx.program_frequency(f_target, f_osc, pfd_target)
+                lmx.program_frequency(f_target, f_osc, pfd_target, outa_pwr=outa_pwr_value)
         except LMX2594Error as e:
             if not args.force:
                 print(f"Programming failed: {e}")

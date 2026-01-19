@@ -22,6 +22,26 @@ CHDIV_TABLE = {
     10: 72, 11: 96, 12: 128, 13: 192, 14: 256, 15: 384, 16: 512, 17: 768,
 }
 
+# OUTA_PWR defaults to 31 on reset; TI docs recommend ~50 for typical output power.
+OUTA_PWR_DEFAULT = 50
+
+
+def apply_outa_pwr(reg_map, outa_pwr=OUTA_PWR_DEFAULT):
+    """
+    Apply OUTA_PWR value to register map (R44[13:8]).
+
+    OUTA_PWR is a 6-bit field. Higher values increase output power and current.
+    """
+    if outa_pwr is None:
+        return reg_map
+    if not 0 <= outa_pwr <= 63:
+        raise ValueError("OUTA_PWR must be 0..63 (R44[13:8])")
+
+    reg44 = reg_map.get(44, 0)
+    reg44 = (reg44 & ~(0x3F << 8)) | ((outa_pwr & 0x3F) << 8)
+    reg_map[44] = reg44 & 0xFFFF
+    return reg_map
+
 
 def _compute_pfd_from_registers(f_osc, reg_map):
     """Compute fPD using the same bit fields as the vendor reference."""
@@ -52,7 +72,14 @@ def _select_chdiv_for_frequency(f_out, f_vco_min=7.5e9, f_vco_max=15e9):
     raise ValueError(f"Cannot place VCO in range {f_vco_min/1e9:.1f}-{f_vco_max/1e9:.1f} GHz for f_out={f_out/1e9:.3f} GHz")
 
 
-def build_registers_from_template(f_out, f_osc, template_reg_map, vco_min=7.5e9, vco_max=15e9):
+def build_registers_from_template(
+    f_out,
+    f_osc,
+    template_reg_map,
+    vco_min=7.5e9,
+    vco_max=15e9,
+    outa_pwr=OUTA_PWR_DEFAULT,
+):
     """
     Apply PLL math (fPD, N/NUM/DEN, CHDIV) on top of a template register map.
 
@@ -103,6 +130,7 @@ def build_registers_from_template(f_out, f_osc, template_reg_map, vco_min=7.5e9,
 
     reg31 = reg_map.get(31, 0)
     reg_map[31] = (reg31 & ~(1 << 14)) | ((chdiv_div2 & 0x1) << 14)
+    apply_outa_pwr(reg_map, outa_pwr)
 
     plan = {
         'f_pd': f_pd,
@@ -551,7 +579,7 @@ class LMX2594Driver:
             # print(f"Error reading lock status: {e} - assuming locked")
             return True
 
-    def program_frequency(self, f_target, f_osc=50e6, pfd_target=100e6):
+    def program_frequency(self, f_target, f_osc=50e6, pfd_target=100e6, outa_pwr=OUTA_PWR_DEFAULT):
         """
         Program LMX2594 for target frequency
 
@@ -570,7 +598,7 @@ class LMX2594Driver:
         self._r0_base = self._build_r0_base(plan['pfd_freq'], muxout_lock_detect=False)
 
         # Generate register values based on plan
-        register_list = self._generate_register_list(plan)
+        register_list = self._generate_register_list(plan, outa_pwr=outa_pwr)
 
         # Perform initial programming
         self.initial_programming(register_list)
@@ -633,7 +661,7 @@ class LMX2594Driver:
             self._r0_base = r0_value & ~((1 << 1) | (1 << 3))
         self.initial_programming(register_list)
 
-    def _generate_register_list(self, plan):
+    def _generate_register_list(self, plan, outa_pwr=OUTA_PWR_DEFAULT):
         """
         Generate register list from frequency plan
 
@@ -663,6 +691,12 @@ class LMX2594Driver:
 
         # Full register configuration based on vendor example
         # Format: (address, data) where data includes the base value + calculated fields
+        if not 0 <= outa_pwr <= 63:
+            raise ValueError("OUTA_PWR must be 0..63 (R44[13:8])")
+
+        r44_data = 0x32C0
+        r44_data = (r44_data & ~(0x3F << 8)) | ((outa_pwr & 0x3F) << 8)
+
         registers = [
             # R0 will be handled separately during programming sequence
             (1, 0x0108 & 0xFFFF),     # CAL_CLK_DIV
@@ -708,7 +742,7 @@ class LMX2594Driver:
             (41, (0x290000 + n_frac_low) & 0xFFFF),  # MASH_SEED_L
             (42, (0x2A0000 + n_frac_high) & 0xFFFF), # PLL_NUM_H
             (43, (0x2B0000 + n_frac_low) & 0xFFFF),  # PLL_NUM_L
-            (44, 0x2C32C0 & 0xFFFF),  # OUTA_PWR, etc.
+            (44, r44_data & 0xFFFF),  # OUTA_PWR, etc.
             (45, 0x2D0000 & 0xFFFF),  # OUTA_MUX, OUT_ISET, OUTB_PWR
             (46, 0x2E07FC & 0xFFFF),  # OUTB_MUX
             (58, 0x3A0001 & 0xFFFF),  # INPIN configuration
