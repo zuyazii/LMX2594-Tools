@@ -1,0 +1,22 @@
+# GUI Technical Overview
+
+- **Target**: `vna-spoofer-gui` builds when Qt5/Qt6 Widgets are available. Entry point: `src/gui/main.cpp`.
+- **MainWindow layout**:
+  - Banner at the top identifies "S Parameter Test System".
+  - Primary panels:
+    - `Calibration Control` with readiness badge, load/setup actions, and space reserved for future calibration widgets.
+    - `S Parameter Test Control` with GHz spin boxes, point-count selection, S-parameter toggles, and run-state buttons.
+  - `createViewTogglePanel` builds a tablet-friendly segmented control (`m_chartsToggleButton`, `m_statusToggleButton`) that drives a `QStackedWidget` (`m_contentStack`) hosting:
+    - Charts page via `createChartsPanel`, producing four placeholder cards ready for a plotting widget.
+    - Status page via `createStatusPanel`, combining meta chips and the `QListWidget` activity log.
+- **S parameter charts**:
+  - The prior Python CLI rendered sweeps with Matplotlib. In Qt the plot surface is provided by the empty `QFrame` returned inside `createChartCard`.
+  - Swap that frame for a plotting widget such as `Qt Charts (QChartView)`, `QCustomPlot`, or a bespoke `QOpenGLWidget`. Feed it C++ data produced by your sweep controller (emitted from `onStartTest` or callbacks) to mirror the CLI visuals without Python.
+- **Assets**: `src/gui/gui_resources.qrc` embeds icons from `assets/icons` with aliases such as `:/icons/start.svg`, `:/icons/status.svg`, and `:/icons/calibration_load.svg` for consistent button art.
+- **State handling**:
+  - `updateControlsForRunning` disables calibration and sweep inputs while a run is active.
+  - `updateCalibrationStatus` and `updateTestState` refresh badges; `appendStatusMessage` updates the activity log plus the meta counters.
+- **Extending the GUI**:
+  - Replace chart placeholders with `QChartView`, `QCustomPlot`, or another canvas to visualise live sweeps.
+  - Bridge the Qt surface to the existing CLI runners by emitting signals from `onStartTest`, `onLoadCalibration`, etc., or by injecting a controller object.
+  - Most theming sits in `MainWindow::setupUi`'s stylesheet; tweak palette and spacing there to maintain visual cohesion.
