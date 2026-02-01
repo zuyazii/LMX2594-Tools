@@ -1,0 +1,3457 @@
+13:37:56.885 LibreVNA IPC starting
+13:37:56.886 PID=22088
+13:37:56.886 Qt=6.5.1
+13:37:56.886 App=C:/Users/a1875/Documents/LMX2594/scripts/vna/cpp/build/librevna-ipc.exe
+13:37:56.886 CWD=C:/Users/a1875/Documents/LMX2594
+13:37:56.887 Server name=librevna-ipc
+13:37:56.887 Log file=C:/Users/a1875/Documents/LMX2594/librevna-ipc.log
+13:37:56.887 PATH=C:\Users\a1875\.local\bin;C:\Users\a1875\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\a1875\bin;C:\Users\a1875\Documents\LMX2594\.venv-x64\Scripts;C:\Users\a1875\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\debugCommand;C:\Users\a1875\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\copilotCli;C:\Program Files (x86)\VMware\VMware Workstation\bin;C:\Program Files (x86)\STMicroelectronics\stlink_server;C:\ST\STM32CubeCLT_1.19.0;C:\ST\STM32CubeCLT_1.19.0\CMake\bin;C:\ST\STM32CubeCLT_1.19.0\st-arm-clang\bin;C:\ST\STM32CubeCLT_1.19.0\Ninja\bin;C:\ST\STM32CubeCLT_1.19.0\GNU-tools-for-STM32\bin;C:\ST\STM32CubeCLT_1.19.0\STLink-gdb-server\bin;C:\ST\STM32CubeCLT_1.19.0\STM32CubeProgrammer\bin;C:\Python313\Scripts;C:\Python313;C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\Program Files\Microsoft SQL Server\150\Tools\Binn;C:\Program Files\dotnet;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Users\a1875\AppData\Local\Programs\Python\Python312;C:\msys64\ucrt64\bin;C:\ProgramData\chocolatey\bin;C:\library\SFML-2.6.1\bin;C:\Program Files\Git\cmd;C:\Program Files (x86)\Microchip\MPLAB C32 Suite\bin;C:\Program Files\nodejs;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Users\a1875\AppData\Local\Programs\Cursor\resources\app\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Program Files\GitHub CLI;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\PuTTY;C:\Users\a1875\AppData\Local\Programs\Python\Python312\Scripts;C:\Users\a1875\.platformio\penv\Scripts;C:\Program Files\usbipd-win;C:\Users\a1875\AppData\Local\cc-sessions\bin;C:\Program Files\WireGuard;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit;C:\Users\a1875\vcpkg;C:\Program Files\Amazon\AWSCLIV2;C:\Program Files\Tailscale;C:\Program Files\cursor\resources\app\bin;C:\Users\a1875\.local\bin;C:\Users\a1875\.pyenv\pyenv-win\bin;C:\Users\a1875\.pyenv\pyenv-win\shims;C:\Users\a1875\AppData\Local\Programs\Python\Python312\Scripts;C:\Users\a1875\AppData\Local\Programs\Python\Python312;C:\Users\a1875\AppData\Local\Microsoft\WindowsApps;C:\Users\a1875\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\a1875\.dotnet\tools;C:\Users\a1875\AppData\Local\GitHubDesktop\bin;C:\msys64\ucrt64\bin;C:\Users\a1875\AppData\Roaming\npm;C:\Users\a1875\AppData\Local\Google\Cloud SDK\google-cloud-sdk\bin;C:\Users\a1875\AppData\Local\Programs\Kiro\bin;C:\Users\a1875\AppData\Local\Microsoft\WindowsApps;C:\Users\a1875\AppData\Roaming\Python\Scripts;C:\Users\a1875\AppData\Local\Microsoft\WinGet\Packages\cURL.cURL_Microsoft.Winget.Source_8wekyb3d8bbwe\curl-8.15.0_4-win64-mingw\bin;C:\Users\a1875\AppData\Local\Microsoft\WinGet\Packages\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\users\a1875\appdata\roaming\python\python313\scripts;C:\Users\a1875\AppData\Local\cc-sessions\bin;C:\Flutter\flutter\bin;C:\Users\a1875\.dotnet\tools;C:\Users\a1875\vcpkg;C:\Users\a1875\bin;C:\Program Files (x86)\Nmap;C:\Users\a1875\.vscode\extensions\ms-python.debugpy-2025.18.0-win32-x64\bundled\scripts\noConfigScripts;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl
+13:37:56.887 Removed stale server librevna-ipc: true
+13:37:56.888 Listening on librevna-ipc
+13:37:59.898 Client connected
+13:37:59.899 Request cmd=run_sweep
+13:37:59.899 run_sweep start f_start=0 f_stop=0 points=21 ifbw=0 power=0.0 timeout_ms=30000
+13:37:59.899 run_sweep v2 - with device info wait
+13:37:59.899 headless sweep requested f_start=0 f_stop=0 points=21 ifbw=0 power=0.0 timeout_ms=30000 cal=none serial=auto
+13:37:59.951 selected driver=LibreVNA/USB serial=207C30635532
+13:37:59.952 loading calibration file...
+13:37:59.952 calibration.fromFile returned=false
+13:37:59.952 calibration loaded=false
+transmission reset active=false
+[USBInBuffer] USBInBuffer constructor start
+[USBInBuffer] USBInBuffer constructor: endpoint=0x81 submit_ret=0
+[USBInBuffer] USBInBuffer constructor start
+[USBInBuffer] USBInBuffer constructor: endpoint=0x82 submit_ret=0
+sending RequestDeviceInfo
+SendPacket queued type=15 queue=1 active=false
+SendPacket starting transmission
+startNextTransmission entered
+encode packet start
+encode packet done len=8
+packet log disabled
+LibreVNA USB bulk timeout set to 3000 ms
+startNextTransmission type=15 len=8 timeout=3000
+USB OUT transfer submitted len=8
+sending RequestDeviceStatus
+SendPacket queued type=26 queue=2 active=true
+SendPacket did not start transmission (already active)
+connectTo returning true
+[USBDriver] USBHandleThread started
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+13:37:59.978 device connected
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+13:37:59.978 waiting for device info...
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+13:37:59.980 still waiting... elapsed=0ms
+[USBDriver] OutTransferCallbackTrampoline called
+[USBDriver] OutTransferCallback: status=0 actual=8 expected=8
+[USBDriver] OutTransferCallback: invoking handleOutTransferResult
+[USBDriver] USBHandleThread: iteration 1, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=8 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 8
+[USBDriver] Decoded packet type: 7 handled_len: 8
+[USBDriver] ReceivedData: Emitting receivedAnswer(Ack)
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=65 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 65
+[USBDriver] Decoded packet type: 5 handled_len: 65
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 5
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] handleOutTransferResult: status=0 actual=8 expected=8
+[USBDriver] handleOutTransferResult: transfer successful, starting timer
+USB OUT transfer ok actual=8 expected=8
+startNextTransmission entered
+encode packet start
+encode packet done len=8
+packet log disabled
+startNextTransmission type=26 len=8 timeout=3000
+USB OUT transfer submitted len=8
+[LibreVNADriver] handleReceivedPacket type=5
+[LibreVNADriver] handleReceivedPacket: DeviceInfo received!
+[LibreVNADriver] handleReceivedPacket: emitting InfoUpdated
+13:38:00.005 device info received via InfoUpdated signal
+[LibreVNADriver] handleReceivedPacket: InfoUpdated emitted
+[USBDriver] OutTransferCallbackTrampoline called
+[USBDriver] OutTransferCallback: status=0 actual=8 expected=8
+13:38:00.005 device info detected via supports() check
+[USBDriver] OutTransferCallback: invoking handleOutTransferResult
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=8 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 8
+[USBDriver] Decoded packet type: 7 handled_len: 8
+13:38:00.006 device ready
+[USBDriver] ReceivedData: Emitting receivedAnswer(Ack)
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+13:38:00.007 starting sweep points=21 ports=1,2
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+13:38:00.008 setVNA starting
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+SendPacket queued type=2 queue=2 active=true
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+SendPacket did not start transmission (already active)
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+13:38:00.009 setVNA returned=true
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+13:38:00.010 event loop starting
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[USBDriver] handleOutTransferResult: status=0 actual=8 expected=8
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] handleOutTransferResult: transfer successful, starting timer
+USB OUT transfer ok actual=8 expected=8
+startNextTransmission entered
+encode packet start
+encode packet done len=39
+packet log disabled
+startNextTransmission type=2 len=39 timeout=3000
+USB OUT transfer submitted len=39
+[LibreVNADriver] handleReceivedPacket type=25
+[LibreVNADriver] handleReceivedPacket type=25
+[USBDriver] OutTransferCallbackTrampoline called
+[USBDriver] OutTransferCallback: status=0 actual=39 expected=39
+[USBDriver] OutTransferCallback: invoking handleOutTransferResult
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=44 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBDriver] handleOutTransferResult: status=0 actual=39 expected=39
+[USBDriver] handleOutTransferResult: transfer successful, starting timer
+[USBInBuffer] Callback: resubmit ret=0
+USB OUT transfer ok actual=39 expected=39
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=8 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 8
+[USBDriver] Decoded packet type: 7 handled_len: 8
+[USBDriver] ReceivedData: Emitting receivedAnswer(Ack)
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+13:38:00.231 setVNA callback ok=true
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 100, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 200, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 300, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=44 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=44 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 400, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=44 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 500, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=44 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 600, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 700, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 800, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 900, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 1000, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 1100, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=44 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 1200, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 1300, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[LibreVNADriver] handleReceivedPacket type=25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=44 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 1400, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[LibreVNADriver] handleReceivedPacket type=25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 1500, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 1600, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 1700, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=44 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 1800, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 1900, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 2000, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=44 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 2100, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] USBHandleThread: iteration 2200, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=32 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=35 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=42 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=58 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+13:38:29.908 Client disconnected
+13:38:30.016 sweep timeout after 30000 ms (received=0)
+13:38:30.016 event loop ended (error=sweep timeout, received=0)
+SendPacket queued type=20 queue=1 active=false
+SendPacket starting transmission
+startNextTransmission entered
+encode packet start
+encode packet done len=8
+packet log disabled
+startNextTransmission type=20 len=8 timeout=3000
+USB OUT transfer submitted len=8
+SendPacket queued type=20 queue=2 active=true
+SendPacket did not start transmission (already active)
+[USBDriver] OutTransferCallbackTrampoline called
+[USBDriver] OutTransferCallback: status=0 actual=8 expected=8
+[USBDriver] OutTransferCallback: invoking handleOutTransferResult
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=8 cancelling=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=3 actual_length=0 cancelling=1
+[USBDriver] USBHandleThread exiting
+13:38:30.019 device disconnected
+13:38:30.019 sweep failed: sweep timeout
+13:38:30.019 Request failed: sweep timeout
+[USBDriver] handleOutTransferResult: status=0 actual=8 expected=8
+[USBDriver] handleOutTransferResult: transfer successful, starting timer
+USB OUT transfer ok actual=8 expected=8
+startNextTransmission entered
+13:41:35.410 Client connected
+13:41:35.410 Request cmd=run_sweep
+13:41:35.412 run_sweep start f_start=1000000000 f_stop=2000000000 points=21 ifbw=10000 power=-10.0 timeout_ms=60000
+13:41:35.412 run_sweep v2 - with device info wait
+13:41:35.412 headless sweep requested f_start=1000000000 f_stop=2000000000 points=21 ifbw=10000 power=-10.0 timeout_ms=60000 cal=none serial=auto
+13:41:35.439 selected driver=LibreVNA/USB serial=207C30635532
+13:41:35.439 loading calibration file...
+13:41:35.439 calibration.fromFile returned=false
+13:41:35.439 calibration loaded=false
+transmission reset active=false
+[USBInBuffer] USBInBuffer constructor start
+[USBInBuffer] USBInBuffer constructor: endpoint=0x81 submit_ret=0
+[USBInBuffer] USBInBuffer constructor start
+[USBInBuffer] USBInBuffer constructor: endpoint=0x82 submit_ret=0
+sending RequestDeviceInfo
+SendPacket queued type=15 queue=1 active=false
+SendPacket starting transmission
+startNextTransmission entered
+encode packet start
+encode packet done len=8
+packet log disabled
+startNextTransmission type=15 len=8 timeout=3000
+USB OUT transfer submitted len=8
+sending RequestDeviceStatus
+SendPacket queued type=26 queue=2 active=true
+SendPacket did not start transmission (already active)
+connectTo returning true
+13:41:35.466 device connected
+[USBDriver] USBHandleThread started
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+13:41:35.466 waiting for device info...
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+13:41:35.467 device info detected via supports() check
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+13:41:35.467 still waiting... elapsed=0ms
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+13:41:35.467 device ready
+13:41:35.467 starting sweep points=21 ports=1,2
+13:41:35.467 setVNA starting
+SendPacket queued type=2 queue=3 active=true
+SendPacket did not start transmission (already active)
+13:41:35.467 setVNA returned=true
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+13:41:35.469 event loop starting
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] OutTransferCallbackTrampoline called
+[USBDriver] OutTransferCallback: status=0 actual=8 expected=8
+[USBDriver] OutTransferCallback: invoking handleOutTransferResult
+[USBDriver] USBHandleThread: iteration 1, connected=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=8 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] handleOutTransferResult: status=0 actual=8 expected=8
+[USBDriver] ReceivedData() called, bytes available: 8
+[USBDriver] handleOutTransferResult: transfer successful, starting timer
+[USBDriver] Decoded packet type: 7 handled_len: 8
+[USBDriver] ReceivedData: Emitting receivedAnswer(Ack)
+USB OUT transfer ok actual=8 expected=8
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+startNextTransmission entered
+[USBInBuffer] Callback: resubmit ret=0
+encode packet start
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=65 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 65
+[USBDriver] Decoded packet type: 5 handled_len: 65
+encode packet done len=8
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 5
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+packet log disabled
+[USBInBuffer] Callback: resubmit ret=0
+startNextTransmission type=26 len=8 timeout=3000
+USB OUT transfer submitted len=8
+[LibreVNADriver] handleReceivedPacket type=5
+[LibreVNADriver] handleReceivedPacket: DeviceInfo received!
+[USBDriver] OutTransferCallbackTrampoline called
+[LibreVNADriver] handleReceivedPacket: emitting InfoUpdated
+[LibreVNADriver] handleReceivedPacket: InfoUpdated emitted
+[USBDriver] OutTransferCallback: status=0 actual=8 expected=8
+[USBDriver] OutTransferCallback: invoking handleOutTransferResult
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=8 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] handleOutTransferResult: status=0 actual=8 expected=8
+[USBDriver] handleOutTransferResult: transfer successful, starting timer
+[USBDriver] ReceivedData() called, bytes available: 8
+[USBDriver] Decoded packet type: 7 handled_len: 8
+USB OUT transfer ok actual=8 expected=8
+[USBDriver] ReceivedData: Emitting receivedAnswer(Ack)
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+startNextTransmission entered
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+encode packet start
+encode packet done len=39
+packet log disabled
+startNextTransmission type=2 len=39 timeout=3000
+USB OUT transfer submitted len=39
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=14 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 14
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=25
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] OutTransferCallbackTrampoline called
+[USBDriver] OutTransferCallback: status=0 actual=39 expected=39
+[USBDriver] OutTransferCallback: invoking handleOutTransferResult
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=57 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBDriver] handleOutTransferResult: status=0 actual=39 expected=39
+[USBDriver] handleOutTransferResult: transfer successful, starting timer
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=44 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+USB OUT transfer ok actual=39 expected=39
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=70 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=37 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=59 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=43 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=34 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=36 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=8 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 8
+[USBDriver] Decoded packet type: 7 handled_len: 8
+[USBDriver] ReceivedData: Emitting receivedAnswer(Ack)
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+13:41:35.697 setVNA callback ok=true
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=74 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 74
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=27
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=148 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+13:41:35.700 measurement received 1/21
+[USBDriver] ReceivedData() called, bytes available: 148
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=27
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=370 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 370
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[LibreVNADriver] handleReceivedPacket type=27
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=27
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=518 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 518
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[LibreVNADriver] handleReceivedPacket type=27
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=80 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=1124 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBDriver] ReceivedData ENTER
+[USBDriver] ReceivedData() called, bytes available: 1124
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 25 handled_len: 14
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 25
+[USBDriver] Decoded packet type: 27 handled_len: 74
+13:41:35.717 measurement received 21/21
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+13:41:35.718 event loop ended (error=none, received=21)
+SendPacket queued type=20 queue=1 active=false
+SendPacket starting transmission
+startNextTransmission entered
+encode packet start
+encode packet done len=8
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+packet log disabled
+startNextTransmission type=20 len=8 timeout=3000
+USB OUT transfer submitted len=8
+SendPacket queued type=20 queue=2 active=true
+SendPacket did not start transmission (already active)
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 27 handled_len: 74
+[USBDriver] ReceivedData: Emitting receivedPacket for type: 27
+[USBDriver] Decoded packet type: 0 handled_len: 0
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBDriver] OutTransferCallbackTrampoline called
+[USBDriver] OutTransferCallback: status=0 actual=8 expected=8
+[USBDriver] OutTransferCallback: invoking handleOutTransferResult
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=46 cancelling=0
+[USBInBuffer] Callback: calling directCallback
+[USBInBuffer] Callback: directCallback returned
+[USBInBuffer] Callback: resubmit ret=0
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=1050 cancelling=1
+[USBInBuffer] CallbackTrampoline called
+[USBInBuffer] Callback: status=0 actual_length=80 cancelling=1
+[USBDriver] USBHandleThread exiting
+13:41:35.724 device disconnected
+13:41:35.724 sweep complete (points=21)
+13:41:35.727 run_sweep done in 315 ms
+[LibreVNADriver] handleReceivedPacket type=25
+[LibreVNADriver] handleReceivedPacket type=27
+[LibreVNADriver] handleReceivedPacket type=27
+[LibreVNADriver] handleReceivedPacket type=27
+[LibreVNADriver] handleReceivedPacket type=27
+[LibreVNADriver] handleReceivedPacket type=27
+[LibreVNADriver] handleReceivedPacket type=27
+[LibreVNADriver] handleReceivedPacket type=27
+[LibreVNADriver] handleReceivedPacket type=27
+[LibreVNADriver] handleReceivedPacket type=27
+[USBDriver] handleOutTransferResult: status=0 actual=8 expected=8
+[USBDriver] handleOutTransferResult: transfer successful, starting timer
+USB OUT transfer ok actual=8 expected=8
+13:41:35.731 Client disconnected
+startNextTransmission entered

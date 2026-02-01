@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 import struct
 import subprocess
 import sys
@@ -20,6 +21,28 @@ if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 root_dir = os.path.dirname(script_dir)
 CONFIG_PATH = os.path.join(root_dir, ".lmx_gui_config.json")
+DEFAULT_LIBREVNA_IPC_CANDIDATES = [
+    os.path.join(root_dir, "scripts", "vna", "cpp", "build", "librevna-ipc.exe"),
+    os.path.join(root_dir, "scripts", "vna", "cpp", "build", "Release", "librevna-ipc.exe"),
+    os.path.join(root_dir, "scripts", "vna", "cpp", "build", "RelWithDebInfo", "librevna-ipc.exe"),
+    os.path.join(root_dir, "scripts", "vna", "cpp", "build", "Debug", "librevna-ipc.exe"),
+]
+MSYS2_UCRT64_BIN = os.environ.get("MSYS2_UCRT64_BIN", r"C:\msys64\ucrt64\bin")
+MSYS2_QT_PLUGIN_PATH = os.environ.get("MSYS2_QT_PLUGIN_PATH", r"C:\msys64\ucrt64\share\qt6\plugins")
+SYSTEM_ROOT = os.environ.get("SystemRoot", r"C:\Windows")
+WINDOWS_SYSTEM32 = os.path.join(SYSTEM_ROOT, "System32")
+IPC_SANITIZE_ENV = os.environ.get("LIBREVNA_IPC_SANITIZE_PATH", "1")
+IPC_NAME_DEFAULT = "librevna-ipc"
+_IPC_NAME_INVALID_CHARS = re.compile(r"[^A-Za-z0-9.-]+")
+
+
+def normalize_ipc_name(value: str) -> str:
+    name = (value or "").strip()
+    if not name:
+        return IPC_NAME_DEFAULT
+    normalized = _IPC_NAME_INVALID_CHARS.sub("-", name)
+    normalized = re.sub(r"-{2,}", "-", normalized).strip("-")
+    return normalized or IPC_NAME_DEFAULT
 
 if struct.calcsize("P") * 8 != 64:
     raise RuntimeError("This GUI must be run with 64-bit Python.")
@@ -119,9 +142,11 @@ class LibreVNAIpcError(RuntimeError):
 
 class LibreVNAIpcClient:
     def __init__(self, server_name: str) -> None:
-        self._server_name = server_name
+        self._server_name = normalize_ipc_name(server_name)
 
     def request(self, payload: Dict[str, object], timeout_ms: int = 5000) -> Dict[str, object]:
+        if not self._server_name:
+            raise LibreVNAIpcError("IPC server name not set")
         socket = QtNetwork.QLocalSocket()
         socket.connectToServer(self._server_name)
         if not socket.waitForConnected(timeout_ms):
@@ -185,7 +210,7 @@ class LibreVNARequestWorker(QtCore.QThread):
         try:
             request = dict(self._payload)
             request["cmd"] = self._cmd
-            self.log.emit(f"LibreVNA IPC -> {self._cmd}")
+            self.log.emit(f"LibreVNA IPC -> {self._cmd} (name={self._server_name!r})")
             result = client.request(request, timeout_ms=self._timeout_ms)
             self.log.emit(f"LibreVNA IPC <- {self._cmd} ok")
             self.done.emit(result)
@@ -469,7 +494,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self._settings.lock_timeout_s = float(self.lock_timeout_spin.value())
         self._settings.worker_python = self.worker_python_edit.text().strip()
         self._settings.librevna_ipc_path = self.librevna_ipc_edit.text().strip()
-        self._settings.librevna_ipc_name = self.librevna_ipc_name_edit.text().strip() or "librevna-ipc"
+        self._settings.librevna_ipc_name = normalize_ipc_name(self.librevna_ipc_name_edit.text())
         return self._settings
 
 
@@ -789,6 +814,7 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         self._suppress_device_save = False
         self._librevna_process: Optional[QtCore.QProcess] = None
         self._librevna_trace: List[Dict[str, object]] = []
+        self._closing = False
 
         central = QtWidgets.QWidget()
         main_layout = QtWidgets.QVBoxLayout(central)
@@ -816,6 +842,7 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(central)
         self._update_librevna_plot_visibility()
         self._update_controls()
+        self._apply_default_librevna_ipc_path()
         self._refresh_devices()
 
     def _build_device_group(self) -> QtWidgets.QGroupBox:
@@ -965,7 +992,7 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         self.librevna_timeout_spin = QtWidgets.QDoubleSpinBox()
         self.librevna_timeout_spin.setRange(100.0, 60000.0)
         self.librevna_timeout_spin.setDecimals(0)
-        self.librevna_timeout_spin.setValue(15000.0)
+        self.librevna_timeout_spin.setValue(60000.0)
 
         form.addRow("IFBW (Hz)", self.librevna_ifbw_spin)
         form.addRow("Power (dBm)", self.librevna_power_spin)
@@ -1093,7 +1120,13 @@ class CalibrationWindow(QtWidgets.QMainWindow):
 
     def _append_log(self, message: str) -> None:
         stamp = QtCore.QDateTime.currentDateTime().toString("HH:mm:ss")
-        self.log_view.appendPlainText(f"[{stamp}] {message}")
+        if self._closing or not hasattr(self, "log_view"):
+            return
+        try:
+            self.log_view.appendPlainText(f"[{stamp}] {message}")
+        except RuntimeError:
+            # QWidget already destroyed during shutdown
+            return
 
     def _set_busy(self, busy: bool) -> None:
         self._busy = busy
@@ -1207,14 +1240,51 @@ class CalibrationWindow(QtWidgets.QMainWindow):
             self._append_log(f"LibreVNA IPC binary not found: {binary}")
             return False
 
+        requested_name = self._settings.librevna_ipc_name
+        sanitized_name = normalize_ipc_name(requested_name)
+        if sanitized_name != requested_name:
+            self._append_log(
+                f"Adjusted LibreVNA IPC name from {requested_name!r} to {sanitized_name!r}"
+            )
+            self._settings.librevna_ipc_name = sanitized_name
         process = QtCore.QProcess(self)
         env = QtCore.QProcessEnvironment.systemEnvironment()
+        sanitize = IPC_SANITIZE_ENV.strip() != "0"
+        if sanitize:
+            path_parts = [MSYS2_UCRT64_BIN, os.path.dirname(binary), WINDOWS_SYSTEM32, SYSTEM_ROOT]
+            path = ";".join([p for p in path_parts if p and os.path.isdir(p)])
+            env.insert("PATH", path)
+            self._append_log(f"LibreVNA IPC PATH sanitized: {path}")
+        else:
+            self._prepend_env_path(env, os.path.dirname(binary))
+            self._prepend_env_path(env, MSYS2_UCRT64_BIN)
+            self._append_log("LibreVNA IPC PATH inherited")
+        if MSYS2_QT_PLUGIN_PATH and os.path.isdir(MSYS2_QT_PLUGIN_PATH):
+            env.insert("QT_PLUGIN_PATH", MSYS2_QT_PLUGIN_PATH)
+            env.insert("QT_QPA_PLATFORM_PLUGIN_PATH", MSYS2_QT_PLUGIN_PATH)
         if self._settings.librevna_ipc_name:
             env.insert("LIBREVNA_IPC_NAME", self._settings.librevna_ipc_name)
+        env.insert("LIBREVNA_USB_BULK_TIMEOUT_MS", "3000")
+        env.insert("LIBREVNA_IPC_LOG", os.path.join(root_dir, "librevna-ipc.log"))
+        env.insert("LIBREVNA_DISABLE_PACKET_LOG", "1")
+        self._append_log(
+            f"Launching LibreVNA IPC: {binary} (name={self._settings.librevna_ipc_name!r})"
+        )
         process.setProcessEnvironment(env)
         process.setProgram(binary)
         process.setArguments([])
         process.setProcessChannelMode(QtCore.QProcess.MergedChannels)
+        process.errorOccurred.connect(
+            lambda err: self._append_log(f"LibreVNA IPC process error: {err}")
+        )
+        process.finished.connect(
+            lambda code, status: self._append_log(
+                f"LibreVNA IPC exited: code={code} status={status}"
+            )
+        )
+        process.stateChanged.connect(
+            lambda state: self._append_log(f"LibreVNA IPC state: {state}")
+        )
         process.readyReadStandardOutput.connect(self._drain_librevna_process)
         process.readyReadStandardError.connect(self._drain_librevna_process)
         process.start()
@@ -1224,6 +1294,25 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         self._librevna_process = process
         self._append_log("LibreVNA IPC started")
         return True
+
+    def _apply_default_librevna_ipc_path(self) -> None:
+        if self._settings.librevna_ipc_path:
+            return
+        for candidate in DEFAULT_LIBREVNA_IPC_CANDIDATES:
+            if os.path.exists(candidate):
+                self._settings.librevna_ipc_path = candidate
+                self._append_log(f"Auto-detected LibreVNA IPC binary: {candidate}")
+                return
+
+    @staticmethod
+    def _prepend_env_path(env: QtCore.QProcessEnvironment, path: str) -> None:
+        if not path or not os.path.isdir(path):
+            return
+        existing = env.value("PATH", "")
+        parts = [p for p in existing.split(";") if p]
+        if path in parts:
+            return
+        env.insert("PATH", f"{path};{existing}" if existing else path)
 
     def _drain_librevna_process(self) -> None:
         if not self._librevna_process:
@@ -1241,9 +1330,12 @@ class CalibrationWindow(QtWidgets.QMainWindow):
             return
 
         self._append_log("Scanning LibreVNA devices")
-        self._ensure_librevna_ipc()
+        if not self._ensure_librevna_ipc():
+            self._append_log("LibreVNA IPC is not running, aborting device scan")
+            return
+        server_name = normalize_ipc_name(self._settings.librevna_ipc_name)
         worker = LibreVNARequestWorker(
-            server_name=self._settings.librevna_ipc_name,
+            server_name=server_name,
             cmd="list_devices",
             payload={},
             timeout_ms=5000,
@@ -1320,7 +1412,7 @@ class CalibrationWindow(QtWidgets.QMainWindow):
             self._settings.librevna_ipc_path = librevna_ipc_path.strip()
         librevna_ipc_name = data.get("librevna_ipc_name")
         if isinstance(librevna_ipc_name, str) and librevna_ipc_name.strip():
-            self._settings.librevna_ipc_name = librevna_ipc_name.strip()
+            self._settings.librevna_ipc_name = normalize_ipc_name(librevna_ipc_name)
         librevna_serial = data.get("librevna_serial")
         if isinstance(librevna_serial, str) and librevna_serial.strip():
             self._settings.librevna_serial = librevna_serial.strip()
@@ -1421,7 +1513,7 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         self.librevna_ifbw_spin.setValue(1000.0)
         self.librevna_power_spin.setValue(-10.0)
         self.librevna_threshold_spin.setValue(-10.0)
-        self.librevna_timeout_spin.setValue(15000.0)
+        self.librevna_timeout_spin.setValue(60000.0)
         self.librevna_port1_check.setChecked(True)
         self.librevna_port2_check.setChecked(True)
         for check in self.librevna_sparam_checks.values():
@@ -1499,13 +1591,14 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         self._append_log(
             "LibreVNA sweep start: "
             f"start={config.f_start_hz} stop={config.f_stop_hz} points={config.points} "
-            f"ifbw={config.ifbw_hz} power={config.power_dbm} threshold={config.threshold_db}"
+            f"ifbw={config.ifbw_hz} power={config.power_dbm} threshold={config.threshold_db} "
+            f"timeout_ms={config.timeout_ms}"
         )
         self.librevna_status_label.setText("Status: Running")
         self._set_librevna_busy(True)
 
         worker = LibreVNARequestWorker(
-            server_name=self._settings.librevna_ipc_name,
+            server_name=normalize_ipc_name(self._settings.librevna_ipc_name),
             cmd="run_sweep",
             payload=payload,
             timeout_ms=int(config.timeout_ms) + 5000,
@@ -1727,6 +1820,7 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         self._set_busy(False)
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        self._closing = True
         self._append_log("GUI close requested, stopping workers")
         self._shutdown_workers()
         event.accept()
@@ -1755,11 +1849,18 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         if self._librevna_process and self._librevna_process.state() != QtCore.QProcess.NotRunning:
             self._append_log("Stopping LibreVNA IPC process")
             try:
-                LibreVNAIpcClient(self._settings.librevna_ipc_name).request({"cmd": "shutdown"}, timeout_ms=2000)
+                LibreVNAIpcClient(normalize_ipc_name(self._settings.librevna_ipc_name)).request(
+                    {"cmd": "shutdown"}, timeout_ms=2000
+                )
+            except Exception:
+                pass
+            try:
+                self._librevna_process.disconnect()
             except Exception:
                 pass
             self._librevna_process.terminate()
             self._librevna_process.waitForFinished(2000)
+            self._librevna_process = None
 
     def _save_calibration(self, path: str, points: List[CalibrationPoint]) -> None:
         config = self._last_config or self._build_config()
