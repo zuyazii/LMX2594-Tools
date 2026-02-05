@@ -16,3 +16,5 @@ docs/
 scripts/vna/cpp/build
 scripts/vna/cpp/prebuilt
 scripts/vna/cpp/LibreVNA-GUI_Source
+
+./nul
