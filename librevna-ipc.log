@@ -605,3 +605,72 @@
 15:06:27.255 Client connected
 15:06:27.256 Request cmd=shutdown
 15:06:27.256 Shutdown requested
+17:23:58.469 Packet log disabled by default (set LIBREVNA_DISABLE_PACKET_LOG=0 to enable)
+17:23:58.489 LibreVNA IPC starting
+17:23:58.490 PID=55496
+17:23:58.490 Qt=6.5.1
+17:23:58.490 App=C:/Users/a1875/Documents/LMX2594/scripts/vna/cpp/build/librevna-ipc.exe
+17:23:58.491 CWD=C:/Users/a1875/Documents/LMX2594
+17:23:58.491 Server name=librevna-ipc
+17:23:58.491 Log file=C:/Users/a1875/Documents/LMX2594/librevna-ipc.log
+17:23:58.492 PATH=C:\Users\a1875\Documents\LMX2594\.venv-x64/Scripts;c:\Users\a1875\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\debugCommand;c:\Users\a1875\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\copilotCli;C:\Program Files (x86)\VMware\VMware Workstation\bin\;C:\Program Files (x86)\STMicroelectronics\stlink_server;C:\ST\STM32CubeCLT_1.19.0;C:\ST\STM32CubeCLT_1.19.0\CMake\bin;C:\ST\STM32CubeCLT_1.19.0\st-arm-clang\bin;C:\ST\STM32CubeCLT_1.19.0\Ninja\bin;C:\ST\STM32CubeCLT_1.19.0\GNU-tools-for-STM32\bin;C:\ST\STM32CubeCLT_1.19.0\STLink-gdb-server\bin;C:\ST\STM32CubeCLT_1.19.0\STM32CubeProgrammer\bin;C:\Python313\Scripts\;C:\Python313\;C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\dotnet\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Users\a1875\AppData\Local\Programs\Python\Python312;C:\msys64\ucrt64\bin;C:\ProgramData\chocolatey\bin;C:\library\SFML-2.6.1\bin;C:\Program Files\Git\cmd;C:\Program Files (x86)\Microchip\MPLAB C32 Suite\bin;C:\Program Files\nodejs\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;c:\Users\a1875\AppData\Local\Programs\Cursor\resources\app\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\GitHub CLI\;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\PuTTY\;C:\Users\a1875\AppData\Local\Programs\Python\Python312\Scripts;C:\Users\a1875\.platformio\penv\Scripts;C:\Program Files\usbipd-win\;C:\Users\a1875\AppData\Local\cc-sessions\bin;C:\Program Files\WireGuard\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Users\a1875\vcpkg;C:\Program Files\Amazon\AWSCLIV2\;C:\Program Files\Tailscale\;C:\Program Files\cursor\resources\app\bin;C:\Users\a1875\.local\bin;C:\Users\a1875\.pyenv\pyenv-win\bin;C:\Users\a1875\.pyenv\pyenv-win\shims;C:\Users\a1875\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\a1875\AppData\Local\Programs\Python\Python312\;C:\Users\a1875\AppData\Local\Microsoft\WindowsApps;C:\Users\a1875\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\a1875\.dotnet\tools;C:\Users\a1875\AppData\Local\GitHubDesktop\bin;C:\msys64\ucrt64\bin;C:\Users\a1875\AppData\Roaming\npm;C:\Users\a1875\AppData\Local\Google\Cloud SDK\google-cloud-sdk\bin;C:\Users\a1875\AppData\Local\Programs\Kiro\bin;C:\Users\a1875\AppData\Local\Microsoft\WindowsApps;C:\Users\a1875\AppData\Roaming\Python\Scripts;C:\Users\a1875\AppData\Local\Microsoft\WinGet\Packages\cURL.cURL_Microsoft.Winget.Source_8wekyb3d8bbwe\curl-8.15.0_4-win64-mingw/bin;C:\Users\a1875\AppData\Local\Microsoft\WinGet\Packages\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe;c:\users\a1875\appdata\roaming\python\python313\scripts;C:\Users\a1875\AppData\Local\cc-sessions\bin;C:\Flutter\flutter\bin;C:\Users\a1875\.dotnet\tools;C:\Users\a1875\vcpkg;C:\Users\a1875\bin;C:\Program Files (x86)\Nmap;c:\Users\a1875\.vscode\extensions\ms-python.debugpy-2025.18.0-win32-x64\bundled\scripts\noConfigScripts
+17:23:58.492 Removed stale server librevna-ipc: true
+17:23:58.493 Listening on librevna-ipc
+17:24:01.069 LibreVNA IPC starting
+17:24:01.070 PID=40664
+17:24:01.070 Qt=6.5.1
+17:24:01.070 App=C:/Users/a1875/Documents/LMX2594/scripts/vna/cpp/build/librevna-ipc.exe
+17:24:01.071 CWD=C:/Users/a1875/Documents/LMX2594
+17:24:01.071 Server name=librevna-ipc
+17:24:01.071 Log file=C:\Users\a1875\Documents\LMX2594\librevna-ipc.log
+17:24:01.072 Listening on librevna-ipc
+17:24:01.794 Client connected
+17:24:01.805 Request cmd=list_devices
+17:24:01.867 Client disconnected
+17:24:20.720 Client connected
+17:24:20.721 Request cmd=list_devices
+17:24:20.773 Client disconnected
+17:24:34.037 Client connected
+17:24:34.038 Request cmd=run_sweep
+17:24:34.038 run_sweep start f_start=3400000000 f_stop=3600000000 points=21 ifbw=1000 power=-10.0 timeout_ms=60000
+17:24:34.729 run_sweep done in 689 ms
+17:24:34.737 Client disconnected
+17:24:52.710 Shutdown requested
+17:24:56.823 LibreVNA IPC starting
+17:24:56.824 PID=19444
+17:24:56.824 Qt=6.5.1
+17:24:56.824 App=C:/Users/a1875/Documents/LMX2594/scripts/vna/cpp/build/librevna-ipc.exe
+17:24:56.825 CWD=C:/Users/a1875/Documents/LMX2594
+17:24:56.825 Server name=librevna-ipc
+17:24:56.825 Log file=C:\Users\a1875\Documents\LMX2594\librevna-ipc.log
+17:24:56.826 Listening on librevna-ipc
+17:26:09.318 Shutdown requested
+14:49:53.306 LibreVNA IPC starting
+14:49:53.308 PID=15244
+14:49:53.309 Qt=6.5.1
+14:49:53.309 App=C:/Users/a1875/Documents/LMX2594/scripts/vna/cpp/build/librevna-ipc.exe
+14:49:53.310 CWD=C:/Users/a1875/Documents/LMX2594
+14:49:53.310 Server name=librevna-ipc
+14:49:53.310 Log file=C:\Users\a1875\Documents\LMX2594\librevna-ipc.log
+14:49:53.312 Listening on librevna-ipc
+14:49:54.982 Packet log disabled by default (set LIBREVNA_DISABLE_PACKET_LOG=0 to enable)
+14:49:55.014 LibreVNA IPC starting
+14:49:55.014 PID=15836
+14:49:55.015 Qt=6.5.1
+14:49:55.015 App=C:/Users/a1875/Documents/LMX2594/scripts/vna/cpp/build/librevna-ipc.exe
+14:49:55.015 CWD=C:/Users/a1875/Documents/LMX2594
+14:49:55.016 Server name=librevna-ipc
+14:49:55.016 Log file=C:/Users/a1875/Documents/LMX2594/librevna-ipc.log
+14:49:55.016 PATH=c:\Users\a1875\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\debugCommand;c:\Users\a1875\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\copilotCli;C:\Program Files (x86)\VMware\VMware Workstation\bin\;C:\Program Files (x86)\STMicroelectronics\stlink_server;C:\ST\STM32CubeCLT_1.19.0;C:\ST\STM32CubeCLT_1.19.0\CMake\bin;C:\ST\STM32CubeCLT_1.19.0\st-arm-clang\bin;C:\ST\STM32CubeCLT_1.19.0\Ninja\bin;C:\ST\STM32CubeCLT_1.19.0\GNU-tools-for-STM32\bin;C:\ST\STM32CubeCLT_1.19.0\STLink-gdb-server\bin;C:\ST\STM32CubeCLT_1.19.0\STM32CubeProgrammer\bin;C:\Python313\Scripts\;C:\Python313\;C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\dotnet\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Users\a1875\AppData\Local\Programs\Python\Python312;C:\msys64\ucrt64\bin;C:\ProgramData\chocolatey\bin;C:\library\SFML-2.6.1\bin;C:\Program Files\Git\cmd;C:\Program Files (x86)\Microchip\MPLAB C32 Suite\bin;C:\Program Files\nodejs\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;c:\Users\a1875\AppData\Local\Programs\Cursor\resources\app\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\GitHub CLI\;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\PuTTY\;C:\Users\a1875\AppData\Local\Programs\Python\Python312\Scripts;C:\Users\a1875\.platformio\penv\Scripts;C:\Program Files\usbipd-win\;C:\Users\a1875\AppData\Local\cc-sessions\bin;C:\Program Files\WireGuard\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Users\a1875\vcpkg;C:\Program Files\Amazon\AWSCLIV2\;C:\Program Files\Tailscale\;C:\Program Files\cursor\resources\app\bin;C:\Users\a1875\.local\bin;C:\Users\a1875\.pyenv\pyenv-win\bin;C:\Users\a1875\.pyenv\pyenv-win\shims;C:\Users\a1875\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\a1875\AppData\Local\Programs\Python\Python312\;C:\Users\a1875\AppData\Local\Microsoft\WindowsApps;C:\Users\a1875\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\a1875\.dotnet\tools;C:\Users\a1875\AppData\Local\GitHubDesktop\bin;C:\msys64\ucrt64\bin;C:\Users\a1875\AppData\Roaming\npm;C:\Users\a1875\AppData\Local\Google\Cloud SDK\google-cloud-sdk\bin;C:\Users\a1875\AppData\Local\Programs\Kiro\bin;C:\Users\a1875\AppData\Local\Microsoft\WindowsApps;C:\Users\a1875\AppData\Roaming\Python\Scripts;C:\Users\a1875\AppData\Local\Microsoft\WinGet\Packages\cURL.cURL_Microsoft.Winget.Source_8wekyb3d8bbwe\curl-8.15.0_4-win64-mingw/bin;C:\Users\a1875\AppData\Local\Microsoft\WinGet\Packages\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe;c:\users\a1875\appdata\roaming\python\python313\scripts;C:\Users\a1875\AppData\Local\cc-sessions\bin;C:\Flutter\flutter\bin;C:\Users\a1875\.dotnet\tools;C:\Users\a1875\vcpkg;C:\Users\a1875\bin;C:\Program Files (x86)\Nmap;c:\Users\a1875\.vscode\extensions\ms-python.debugpy-2025.18.0-win32-x64\bundled\scripts\noConfigScripts
+14:49:55.017 Removed stale server librevna-ipc: true
+14:49:55.017 Listening on librevna-ipc
+18:14:55.470 Shutdown requested
+00:40:13.452 LibreVNA IPC starting
+00:40:13.453 PID=66744
+00:40:13.454 Qt=6.5.1
+00:40:13.454 App=C:/Users/a1875/Documents/LMX2594/scripts/vna/cpp/build/librevna-ipc.exe
+00:40:13.455 CWD=C:/Users/a1875/Documents/LMX2594
+00:40:13.455 Server name=librevna-ipc
+00:40:13.455 Log file=C:\Users\a1875\Documents\LMX2594\librevna-ipc.log
+00:40:13.456 Listening on librevna-ipc
+02:08:00.252 Shutdown requested

@@ -437,6 +437,101 @@ class TinySAController:
             return None
         return float(values[0])
 
+    def measure_extended(
+        self,
+        center_freq_hz: float,
+        span_hz: float = 10e6,
+        points: int = 51,
+        timeout_s: float = 10.0,
+    ) -> Dict[str, object]:
+        """
+        Perform extended measurement capturing peak frequency, bandwidth, and noise floor.
+        
+        Returns dict with keys:
+            - power_dbm: measured power at center frequency
+            - peak_frequency_hz: frequency of maximum power
+            - peak_power_dbm: power at peak frequency
+            - bandwidth_hz: estimated 3dB bandwidth (if detectable)
+            - noise_floor_dbm: estimated noise floor
+        """
+        self._log(f"tinySA extended measurement: center={center_freq_hz} span={span_hz}")
+        
+        start_hz = center_freq_hz - span_hz / 2
+        stop_hz = center_freq_hz + span_hz / 2
+        
+        # Perform sweep
+        cmd = f"scan {int(start_hz)} {int(stop_hz)} {points} 2\r\n"
+        data_bytes = self._serial_command(cmd, timeout_s=timeout_s)
+        
+        if not data_bytes:
+            raise TinySAError("tinySA extended scan returned no data")
+        
+        values = parse_scan_values(data_bytes)
+        if not values:
+            raise TinySAError("tinySA extended scan returned no parseable values")
+        
+        # Calculate frequency step
+        freq_step = span_hz / (len(values) - 1) if len(values) > 1 else span_hz
+        frequencies = [start_hz + i * freq_step for i in range(len(values))]
+        
+        # Find peak
+        peak_idx = values.index(max(values))
+        peak_power = values[peak_idx]
+        peak_freq = frequencies[peak_idx]
+        
+        # Estimate noise floor (lowest 10% of values)
+        sorted_values = sorted(values)
+        noise_count = max(1, len(sorted_values) // 10)
+        noise_floor = sum(sorted_values[:noise_count]) / noise_count
+        
+        # Estimate 3dB bandwidth
+        bandwidth = self._estimate_bandwidth(frequencies, values, peak_idx, peak_power)
+        
+        # Get power at center frequency
+        center_idx = len(values) // 2
+        center_power = values[center_idx]
+        
+        self.resume()
+        
+        return {
+            "power_dbm": center_power,
+            "peak_frequency_hz": peak_freq,
+            "peak_power_dbm": peak_power,
+            "bandwidth_hz": bandwidth,
+            "noise_floor_dbm": noise_floor,
+        }
+
+    def _estimate_bandwidth(
+        self,
+        frequencies: List[float],
+        values: List[float],
+        peak_idx: int,
+        peak_power: float,
+    ) -> Optional[float]:
+        """Estimate 3dB bandwidth from sweep data."""
+        threshold = peak_power - 3.0
+        
+        # Find left edge
+        left_freq = None
+        for i in range(peak_idx, -1, -1):
+            if values[i] < threshold:
+                if i < peak_idx:
+                    # Interpolate
+                    left_freq = frequencies[i]
+                break
+        
+        # Find right edge
+        right_freq = None
+        for i in range(peak_idx, len(values)):
+            if values[i] < threshold:
+                if i > peak_idx:
+                    right_freq = frequencies[i]
+                break
+        
+        if left_freq is not None and right_freq is not None:
+            return right_freq - left_freq
+        return None
+
 
 def parse_register_values(path: str) -> Tuple[List[Tuple[int, int]], Optional[int], Dict[int, int]]:
     """

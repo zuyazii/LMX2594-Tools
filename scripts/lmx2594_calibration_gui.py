@@ -13,7 +13,8 @@ import subprocess
 import sys
 import threading
 import time
-from dataclasses import dataclass
+import uuid
+from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Tuple
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -54,6 +55,8 @@ except ImportError:  # pragma: no cover - fallback only
     from PyQt5 import QtCore, QtGui, QtWidgets, QtNetwork  # type: ignore
     Signal = QtCore.pyqtSignal  # type: ignore
 
+from enum import Enum, auto
+
 from tinysa_antenna_test import (  # noqa: E402
     TinySAController,
     TinySAError,
@@ -61,6 +64,37 @@ from tinysa_antenna_test import (  # noqa: E402
     list_serial_ports,
     parse_frequency,
 )
+
+
+class WorkflowState(Enum):
+    """State machine for guided calibration workflow."""
+    IDLE = auto()
+    DEVICE_SELECTION = auto()
+    # Calibration Phase
+    LIBREVNA_CALIBRATION = auto()
+    TINYSA_CALIBRATION = auto()
+    REFERENCE_ANTENNA_MEASUREMENT = auto()
+    LMX_CALIBRATION = auto()
+    LMX_CALIBRATION_COMPLETE = auto()
+    # Golden Sample Phase
+    ANTENNA_MEASUREMENT_LOOP = auto()
+    GOLDEN_SAMPLE_SELECTION = auto()
+    # Legacy states (kept for compatibility)
+    ANTENNA_MEASUREMENT = auto()
+    ANTENNA_COMPLETE = auto()
+    GOLDEN_SAMPLE_CHECK = auto()
+    # Production Testing Phase
+    PRODUCTION_TESTING = auto()
+    # Terminal states
+    WORKFLOW_COMPLETE = auto()
+    WORKFLOW_CANCELLED = auto()
+
+
+class DeviceMode(Enum):
+    """Mutually exclusive device mode selection."""
+    NONE = auto()
+    VNA = auto()
+    SA = auto()
 
 
 def _utc_now() -> str:
@@ -86,6 +120,68 @@ class CalibrationPoint:
 
 
 @dataclass
+class AntennaMeasurement:
+    """Single antenna measurement with extended tinySA characteristics."""
+    id: str
+    timestamp: str
+    label: str
+    frequency_hz: float
+    gain_db: float
+    transmitted_power_dbm: float
+    received_power_dbm: float
+    peak_frequency_hz: Optional[float] = None
+    bandwidth_hz: Optional[float] = None
+    noise_floor_dbm: Optional[float] = None
+    is_golden_sample: bool = False
+    pass_fail: Optional[str] = None
+    offset_from_golden_db: Optional[float] = None
+
+    def as_dict(self) -> Dict[str, object]:
+        return {
+            "id": self.id,
+            "timestamp": self.timestamp,
+            "label": self.label,
+            "frequency_hz": self.frequency_hz,
+            "gain_db": self.gain_db,
+            "transmitted_power_dbm": self.transmitted_power_dbm,
+            "received_power_dbm": self.received_power_dbm,
+            "peak_frequency_hz": self.peak_frequency_hz,
+            "bandwidth_hz": self.bandwidth_hz,
+            "noise_floor_dbm": self.noise_floor_dbm,
+            "is_golden_sample": self.is_golden_sample,
+            "pass_fail": self.pass_fail,
+            "offset_from_golden_db": self.offset_from_golden_db,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, object]) -> "AntennaMeasurement":
+        return cls(
+            id=str(data.get("id", "")),
+            timestamp=str(data.get("timestamp", "")),
+            label=str(data.get("label", "")),
+            frequency_hz=float(data.get("frequency_hz", 0.0)),
+            gain_db=float(data.get("gain_db", 0.0)),
+            transmitted_power_dbm=float(data.get("transmitted_power_dbm", 0.0)),
+            received_power_dbm=float(data.get("received_power_dbm", 0.0)),
+            peak_frequency_hz=float(data["peak_frequency_hz"]) if data.get("peak_frequency_hz") else None,
+            bandwidth_hz=float(data["bandwidth_hz"]) if data.get("bandwidth_hz") else None,
+            noise_floor_dbm=float(data["noise_floor_dbm"]) if data.get("noise_floor_dbm") else None,
+            is_golden_sample=bool(data.get("is_golden_sample", False)),
+            pass_fail=str(data["pass_fail"]) if data.get("pass_fail") else None,
+            offset_from_golden_db=float(data["offset_from_golden_db"]) if data.get("offset_from_golden_db") is not None else None,
+        )
+
+
+@dataclass
+class GoldenSampleConfig:
+    """Configuration for golden sample comparison."""
+    target_gain_db: float = -60.0
+    tolerance_db: float = 3.0
+    selected_sample_id: Optional[str] = None
+    selected_sample: Optional[AntennaMeasurement] = None
+
+
+@dataclass
 class HiddenSettings:
     fosc: str = "50MHz"
     pfd: str = "50MHz"
@@ -101,6 +197,10 @@ class HiddenSettings:
     librevna_ipc_path: str = ""
     librevna_ipc_name: str = "librevna-ipc"
     librevna_serial: Optional[str] = None
+    # Workflow calibration paths
+    tinysa_cal_path: str = ""
+    librevna_cal_path: str = ""
+    golden_gain_threshold: float = 60.0
 
 
 @dataclass
@@ -408,6 +508,333 @@ class SParameterPlotWidget(QtWidgets.QWidget):
             painter.setPen(self.palette().text().color())
             painter.drawText(legend_x + 22, legend_y + 10, name)
             legend_y += 16
+
+
+class GoldenSamplePanel(QtWidgets.QWidget):
+    """Panel for displaying and selecting golden samples."""
+    
+    sample_selected = Signal(str)  # Emits sample ID when selected
+    sample_confirmed = Signal(object)  # Emits AntennaMeasurement when confirmed
+    
+    def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
+        super().__init__(parent)
+        self._candidates: List[AntennaMeasurement] = []
+        self._selected_id: Optional[str] = None
+        self._setup_ui()
+    
+    def _setup_ui(self) -> None:
+        layout = QtWidgets.QVBoxLayout(self)
+        
+        # Target gain and tolerance inputs
+        config_layout = QtWidgets.QHBoxLayout()
+        config_layout.addWidget(QtWidgets.QLabel("Target Gain:"))
+        self.target_gain_spin = QtWidgets.QDoubleSpinBox()
+        self.target_gain_spin.setRange(-200.0, 50.0)
+        self.target_gain_spin.setDecimals(1)
+        self.target_gain_spin.setValue(-60.0)
+        self.target_gain_spin.setSuffix(" dB")
+        config_layout.addWidget(self.target_gain_spin)
+        
+        config_layout.addSpacing(20)
+        config_layout.addWidget(QtWidgets.QLabel("Tolerance:"))
+        self.tolerance_spin = QtWidgets.QDoubleSpinBox()
+        self.tolerance_spin.setRange(0.1, 50.0)
+        self.tolerance_spin.setDecimals(1)
+        self.tolerance_spin.setValue(3.0)
+        self.tolerance_spin.setPrefix("+/- ")
+        self.tolerance_spin.setSuffix(" dB")
+        config_layout.addWidget(self.tolerance_spin)
+        config_layout.addStretch(1)
+        layout.addLayout(config_layout)
+        
+        # Candidates list
+        candidates_group = QtWidgets.QGroupBox("Candidates (gain within threshold)")
+        candidates_layout = QtWidgets.QVBoxLayout(candidates_group)
+        self.candidates_list = QtWidgets.QListWidget()
+        self.candidates_list.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.candidates_list.itemClicked.connect(self._on_candidate_clicked)
+        candidates_layout.addWidget(self.candidates_list)
+        layout.addWidget(candidates_group)
+        
+        # Selected sample characteristics
+        char_group = QtWidgets.QGroupBox("Selected Sample Characteristics")
+        char_layout = QtWidgets.QFormLayout(char_group)
+        self.char_gain_label = QtWidgets.QLabel("-")
+        self.char_tx_power_label = QtWidgets.QLabel("-")
+        self.char_rx_power_label = QtWidgets.QLabel("-")
+        self.char_peak_freq_label = QtWidgets.QLabel("-")
+        self.char_bandwidth_label = QtWidgets.QLabel("-")
+        self.char_noise_floor_label = QtWidgets.QLabel("-")
+        char_layout.addRow("Gain:", self.char_gain_label)
+        char_layout.addRow("Tx Power:", self.char_tx_power_label)
+        char_layout.addRow("Rx Power:", self.char_rx_power_label)
+        char_layout.addRow("Peak Freq:", self.char_peak_freq_label)
+        char_layout.addRow("Bandwidth:", self.char_bandwidth_label)
+        char_layout.addRow("Noise Floor:", self.char_noise_floor_label)
+        layout.addWidget(char_group)
+        
+        # Confirm button
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.addStretch(1)
+        self.confirm_button = QtWidgets.QPushButton("Confirm Golden Sample")
+        self.confirm_button.setEnabled(False)
+        self.confirm_button.clicked.connect(self._on_confirm_clicked)
+        button_layout.addWidget(self.confirm_button)
+        layout.addLayout(button_layout)
+    
+    def add_candidate(self, measurement: AntennaMeasurement) -> None:
+        """Add a measurement as a candidate if within tolerance."""
+        target = self.target_gain_spin.value()
+        tolerance = self.tolerance_spin.value()
+        
+        if abs(measurement.gain_db - target) <= tolerance:
+            self._candidates.append(measurement)
+            self._update_candidates_list()
+    
+    def clear_candidates(self) -> None:
+        """Clear all candidates."""
+        self._candidates = []
+        self._selected_id = None
+        self.candidates_list.clear()
+        self._clear_characteristics()
+        self.confirm_button.setEnabled(False)
+    
+    def _update_candidates_list(self) -> None:
+        self.candidates_list.clear()
+        for m in self._candidates:
+            text = f"{m.label} | Gain: {m.gain_db:.1f} dB | {m.timestamp}"
+            item = QtWidgets.QListWidgetItem(text)
+            item.setData(QtCore.Qt.UserRole, m.id)
+            if m.id == self._selected_id:
+                item.setText(text + "  [SELECTED]")
+                font = item.font()
+                font.setBold(True)
+                item.setFont(font)
+            self.candidates_list.addItem(item)
+    
+    def _on_candidate_clicked(self, item: QtWidgets.QListWidgetItem) -> None:
+        sample_id = item.data(QtCore.Qt.UserRole)
+        self._selected_id = sample_id
+        self._update_candidates_list()
+        self._update_characteristics()
+        self.confirm_button.setEnabled(True)
+        self.sample_selected.emit(sample_id)
+    
+    def _update_characteristics(self) -> None:
+        measurement = self._get_selected_measurement()
+        if not measurement:
+            self._clear_characteristics()
+            return
+        
+        self.char_gain_label.setText(f"{measurement.gain_db:.2f} dB")
+        self.char_tx_power_label.setText(f"{measurement.transmitted_power_dbm:.2f} dBm")
+        self.char_rx_power_label.setText(f"{measurement.received_power_dbm:.2f} dBm")
+        
+        if measurement.peak_frequency_hz:
+            self.char_peak_freq_label.setText(f"{measurement.peak_frequency_hz / 1e9:.4f} GHz")
+        else:
+            self.char_peak_freq_label.setText("-")
+        
+        if measurement.bandwidth_hz:
+            self.char_bandwidth_label.setText(f"{measurement.bandwidth_hz / 1e6:.2f} MHz")
+        else:
+            self.char_bandwidth_label.setText("-")
+        
+        if measurement.noise_floor_dbm:
+            self.char_noise_floor_label.setText(f"{measurement.noise_floor_dbm:.2f} dBm")
+        else:
+            self.char_noise_floor_label.setText("-")
+    
+    def _clear_characteristics(self) -> None:
+        self.char_gain_label.setText("-")
+        self.char_tx_power_label.setText("-")
+        self.char_rx_power_label.setText("-")
+        self.char_peak_freq_label.setText("-")
+        self.char_bandwidth_label.setText("-")
+        self.char_noise_floor_label.setText("-")
+    
+    def _get_selected_measurement(self) -> Optional[AntennaMeasurement]:
+        if not self._selected_id:
+            return None
+        for m in self._candidates:
+            if m.id == self._selected_id:
+                return m
+        return None
+    
+    def _on_confirm_clicked(self) -> None:
+        measurement = self._get_selected_measurement()
+        if measurement:
+            measurement.is_golden_sample = True
+            self.sample_confirmed.emit(measurement)
+
+
+class AntennaResultsWidget(QtWidgets.QWidget):
+    """Scrollable widget for displaying antenna test results with PASS/FAIL status."""
+    
+    def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
+        super().__init__(parent)
+        self._measurements: List[AntennaMeasurement] = []
+        self._golden_sample: Optional[AntennaMeasurement] = None
+        self._tolerance_db: float = 3.0
+        self._setup_ui()
+    
+    def _setup_ui(self) -> None:
+        layout = QtWidgets.QVBoxLayout(self)
+        
+        # Header with golden sample info
+        header_layout = QtWidgets.QHBoxLayout()
+        self.golden_info_label = QtWidgets.QLabel("Golden Sample: Not set")
+        self.golden_info_label.setStyleSheet("font-weight: bold;")
+        header_layout.addWidget(self.golden_info_label)
+        header_layout.addStretch(1)
+        layout.addLayout(header_layout)
+        
+        # Results table
+        self.results_table = QtWidgets.QTableWidget(0, 6)
+        self.results_table.setHorizontalHeaderLabels([
+            "#", "Label", "Gain (dB)", "Offset", "Status", "Timestamp"
+        ])
+        self.results_table.horizontalHeader().setStretchLastSection(True)
+        self.results_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.results_table.setAlternatingRowColors(True)
+        layout.addWidget(self.results_table)
+        
+        # Summary row
+        self.summary_label = QtWidgets.QLabel("Summary: 0 tested | 0 PASS | 0 FAIL")
+        layout.addWidget(self.summary_label)
+        
+        # Buttons
+        button_layout = QtWidgets.QHBoxLayout()
+        self.export_button = QtWidgets.QPushButton("Export Results")
+        self.export_button.clicked.connect(self._on_export_clicked)
+        self.clear_button = QtWidgets.QPushButton("Clear")
+        self.clear_button.clicked.connect(self._on_clear_clicked)
+        button_layout.addStretch(1)
+        button_layout.addWidget(self.export_button)
+        button_layout.addWidget(self.clear_button)
+        layout.addLayout(button_layout)
+    
+    def set_golden_sample(self, sample: AntennaMeasurement, tolerance_db: float) -> None:
+        """Set the golden sample for comparison."""
+        self._golden_sample = sample
+        self._tolerance_db = tolerance_db
+        self.golden_info_label.setText(
+            f"Golden Sample: {sample.label} ({sample.gain_db:.1f} dB) | Tolerance: +/- {tolerance_db:.1f} dB"
+        )
+        # Re-evaluate all existing measurements
+        self._reevaluate_all()
+    
+    def add_measurement(self, measurement: AntennaMeasurement) -> None:
+        """Add a measurement and evaluate against golden sample."""
+        if self._golden_sample:
+            offset = measurement.gain_db - self._golden_sample.gain_db
+            measurement.offset_from_golden_db = offset
+            measurement.pass_fail = "PASS" if abs(offset) <= self._tolerance_db else "FAIL"
+        
+        self._measurements.append(measurement)
+        self._add_table_row(measurement, len(self._measurements))
+        self._update_summary()
+    
+    def _add_table_row(self, m: AntennaMeasurement, row_num: int) -> None:
+        row = self.results_table.rowCount()
+        self.results_table.insertRow(row)
+        
+        self.results_table.setItem(row, 0, QtWidgets.QTableWidgetItem(str(row_num)))
+        self.results_table.setItem(row, 1, QtWidgets.QTableWidgetItem(m.label))
+        self.results_table.setItem(row, 2, QtWidgets.QTableWidgetItem(f"{m.gain_db:.2f}"))
+        
+        offset_text = f"{m.offset_from_golden_db:+.2f}" if m.offset_from_golden_db is not None else "-"
+        self.results_table.setItem(row, 3, QtWidgets.QTableWidgetItem(offset_text))
+        
+        status_item = QtWidgets.QTableWidgetItem(m.pass_fail or "-")
+        if m.pass_fail == "PASS":
+            status_item.setForeground(QtGui.QColor("#0a7f2e"))
+        elif m.pass_fail == "FAIL":
+            status_item.setForeground(QtGui.QColor("#c1121f"))
+        self.results_table.setItem(row, 4, status_item)
+        
+        self.results_table.setItem(row, 5, QtWidgets.QTableWidgetItem(m.timestamp))
+    
+    def _reevaluate_all(self) -> None:
+        """Re-evaluate all measurements against current golden sample."""
+        if not self._golden_sample:
+            return
+        
+        self.results_table.setRowCount(0)
+        for i, m in enumerate(self._measurements):
+            offset = m.gain_db - self._golden_sample.gain_db
+            m.offset_from_golden_db = offset
+            m.pass_fail = "PASS" if abs(offset) <= self._tolerance_db else "FAIL"
+            self._add_table_row(m, i + 1)
+        self._update_summary()
+    
+    def _update_summary(self) -> None:
+        total = len(self._measurements)
+        passed = sum(1 for m in self._measurements if m.pass_fail == "PASS")
+        failed = sum(1 for m in self._measurements if m.pass_fail == "FAIL")
+        rate = (passed / total * 100) if total > 0 else 0
+        self.summary_label.setText(
+            f"Summary: {total} tested | {passed} PASS ({rate:.1f}%) | {failed} FAIL"
+        )
+    
+    def clear(self) -> None:
+        """Clear all measurements."""
+        self._measurements = []
+        self.results_table.setRowCount(0)
+        self._update_summary()
+    
+    def _on_clear_clicked(self) -> None:
+        reply = QtWidgets.QMessageBox.question(
+            self, "Clear Results",
+            "Are you sure you want to clear all test results?",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+        )
+        if reply == QtWidgets.QMessageBox.Yes:
+            self.clear()
+    
+    def _on_export_clicked(self) -> None:
+        if not self._measurements:
+            QtWidgets.QMessageBox.information(self, "Export", "No measurements to export.")
+            return
+        
+        path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self, "Export Results", "", "JSON Files (*.json);;CSV Files (*.csv)"
+        )
+        if not path:
+            return
+        
+        if path.endswith(".csv"):
+            self._export_csv(path)
+        else:
+            self._export_json(path)
+    
+    def _export_json(self, path: str) -> None:
+        data = {
+            "type": "antenna_test_session",
+            "created_at": _utc_now(),
+            "golden_sample": self._golden_sample.as_dict() if self._golden_sample else None,
+            "tolerance_db": self._tolerance_db,
+            "measurements": [m.as_dict() for m in self._measurements],
+            "summary": {
+                "total": len(self._measurements),
+                "passed": sum(1 for m in self._measurements if m.pass_fail == "PASS"),
+                "failed": sum(1 for m in self._measurements if m.pass_fail == "FAIL"),
+            }
+        }
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    
+    def _export_csv(self, path: str) -> None:
+        import csv
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["#", "Label", "Gain (dB)", "Offset", "Status", "Timestamp"])
+            for i, m in enumerate(self._measurements):
+                offset = f"{m.offset_from_golden_db:+.2f}" if m.offset_from_golden_db is not None else ""
+                writer.writerow([i + 1, m.label, f"{m.gain_db:.2f}", offset, m.pass_fail or "", m.timestamp])
+    
+    def get_measurements(self) -> List[AntennaMeasurement]:
+        return list(self._measurements)
 
 
 class SettingsDialog(QtWidgets.QDialog):
@@ -796,6 +1223,86 @@ class CalibrateTinySAWorker(QtCore.QThread):
         self.done.emit(bool(supported))
 
 
+class AntennaMeasurementWorker(QtCore.QThread):
+    """Worker thread for single antenna measurement with extended characteristics."""
+    log = Signal(str)
+    done = Signal(object)  # Emits AntennaMeasurement
+    failed = Signal(str)
+
+    def __init__(
+        self,
+        port: Optional[str],
+        frequency_hz: float,
+        tx_power_dbm: float,
+        label: str,
+        debug: bool = False,
+        parent: Optional[QtCore.QObject] = None,
+    ) -> None:
+        super().__init__(parent)
+        self._port = port
+        self._frequency_hz = frequency_hz
+        self._tx_power_dbm = tx_power_dbm
+        self._label = label
+        self._debug = debug
+
+    def run(self) -> None:
+        self.log.emit(f"Connecting to tinySA for antenna measurement")
+        tinysa = TinySAController(
+            self._port,
+            verbose=False,
+            error_byte=False,
+            debug_cb=self.log.emit if self._debug else None,
+        )
+        try:
+            tinysa.connect()
+            self.log.emit(f"Measuring at {self._frequency_hz/1e9:.3f} GHz")
+            
+            # Try extended measurement first
+            try:
+                ext_data = tinysa.measure_extended(
+                    self._frequency_hz,
+                    span_hz=10e6,
+                    points=51,
+                    timeout_s=10.0,
+                )
+                rx_power = ext_data["power_dbm"]
+                peak_freq = ext_data.get("peak_frequency_hz")
+                bandwidth = ext_data.get("bandwidth_hz")
+                noise_floor = ext_data.get("noise_floor_dbm")
+            except Exception as exc:
+                self.log.emit(f"Extended measurement failed, using simple: {exc}")
+                rx_power = tinysa.scan_point(self._frequency_hz, timeout_s=5.0)
+                peak_freq = None
+                bandwidth = None
+                noise_floor = None
+            
+            gain_db = rx_power - self._tx_power_dbm
+            
+            measurement = AntennaMeasurement(
+                id=str(uuid.uuid4()),
+                timestamp=_utc_now(),
+                label=self._label,
+                frequency_hz=self._frequency_hz,
+                gain_db=gain_db,
+                transmitted_power_dbm=self._tx_power_dbm,
+                received_power_dbm=rx_power,
+                peak_frequency_hz=peak_freq,
+                bandwidth_hz=bandwidth,
+                noise_floor_dbm=noise_floor,
+            )
+            
+            self.log.emit(f"Measurement complete: {self._label} = {gain_db:.2f} dB")
+            self.done.emit(measurement)
+            
+        except Exception as exc:
+            self.failed.emit(str(exc))
+        finally:
+            try:
+                tinysa.disconnect()
+            except Exception:
+                pass
+
+
 class CalibrationWindow(QtWidgets.QMainWindow):
     def __init__(self) -> None:
         super().__init__()
@@ -806,6 +1313,7 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         self._load_settings_from_disk()
         self._worker: Optional[CalibrationWorker] = None
         self._cal_worker: Optional[CalibrateTinySAWorker] = None
+        self._antenna_measure_worker: Optional[AntennaMeasurementWorker] = None
         self._librevna_device_worker: Optional[LibreVNARequestWorker] = None
         self._librevna_sweep_worker: Optional[LibreVNARequestWorker] = None
         self._last_config: Optional[CalibrationConfig] = None
@@ -815,9 +1323,14 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         self._librevna_process: Optional[QtCore.QProcess] = None
         self._librevna_trace: List[Dict[str, object]] = []
         self._closing = False
+        self._workflow_state = WorkflowState.IDLE
+        self._device_mode = DeviceMode.NONE
+        self._workflow_results: Dict[str, object] = {}
 
         central = QtWidgets.QWidget()
         main_layout = QtWidgets.QVBoxLayout(central)
+
+        main_layout.addWidget(self._build_workflow_status_bar())
 
         top_layout = QtWidgets.QHBoxLayout()
         top_layout.addWidget(self._build_device_group())
@@ -841,13 +1354,83 @@ class CalibrationWindow(QtWidgets.QMainWindow):
 
         self.setCentralWidget(central)
         self._update_librevna_plot_visibility()
+        self._update_device_panel_visibility()
         self._update_controls()
         self._apply_default_librevna_ipc_path()
+        self._apply_saved_calibration_paths()
         self._refresh_devices()
+
+    def _build_workflow_status_bar(self) -> QtWidgets.QFrame:
+        frame = QtWidgets.QFrame()
+        frame.setFrameStyle(QtWidgets.QFrame.StyledPanel | QtWidgets.QFrame.Raised)
+        main_layout = QtWidgets.QVBoxLayout(frame)
+        main_layout.setContentsMargins(8, 4, 8, 4)
+        main_layout.setSpacing(4)
+
+        # Top row: Phase and step label
+        top_layout = QtWidgets.QHBoxLayout()
+        self.workflow_step_label = QtWidgets.QLabel("Workflow: Idle")
+        font = self.workflow_step_label.font()
+        font.setBold(True)
+        font.setPointSize(font.pointSize() + 1)
+        self.workflow_step_label.setFont(font)
+        top_layout.addWidget(self.workflow_step_label)
+        top_layout.addStretch(1)
+        main_layout.addLayout(top_layout)
+
+        # Middle row: Checklist indicators
+        checklist_layout = QtWidgets.QHBoxLayout()
+        self.check_librevna_cal = QtWidgets.QLabel("[ ] LibreVNA Cal")
+        self.check_tinysa_cal = QtWidgets.QLabel("[ ] tinySA Cal")
+        self.check_ref_antenna = QtWidgets.QLabel("[ ] Reference Antenna")
+        self.check_golden_sample = QtWidgets.QLabel("[ ] Golden Sample")
+        for check in [self.check_librevna_cal, self.check_tinysa_cal, 
+                      self.check_ref_antenna, self.check_golden_sample]:
+            check.setStyleSheet("color: gray;")
+            checklist_layout.addWidget(check)
+        checklist_layout.addStretch(1)
+        main_layout.addLayout(checklist_layout)
+
+        # Bottom row: Instruction and buttons
+        bottom_layout = QtWidgets.QHBoxLayout()
+        self.workflow_instruction_label = QtWidgets.QLabel("")
+        self.workflow_instruction_label.setStyleSheet("color: gray; font-style: italic;")
+
+        self.start_workflow_button = QtWidgets.QPushButton("Start Workflow")
+        self.start_workflow_button.clicked.connect(self._start_guided_workflow)
+        self.next_step_button = QtWidgets.QPushButton("Next Step")
+        self.next_step_button.setEnabled(False)
+        self.next_step_button.clicked.connect(self._advance_workflow)
+        self.cancel_workflow_button = QtWidgets.QPushButton("Cancel Workflow")
+        self.cancel_workflow_button.setEnabled(False)
+        self.cancel_workflow_button.clicked.connect(self._cancel_workflow)
+
+        bottom_layout.addWidget(self.workflow_instruction_label, 1)
+        bottom_layout.addWidget(self.start_workflow_button)
+        bottom_layout.addWidget(self.next_step_button)
+        bottom_layout.addWidget(self.cancel_workflow_button)
+        main_layout.addLayout(bottom_layout)
+        
+        return frame
 
     def _build_device_group(self) -> QtWidgets.QGroupBox:
         group = QtWidgets.QGroupBox("Device Finder and Selector")
         layout = QtWidgets.QGridLayout(group)
+
+        # Device mode selection (VNA or SA)
+        mode_layout = QtWidgets.QHBoxLayout()
+        self.vna_radio = QtWidgets.QRadioButton("VNA Mode")
+        self.sa_radio = QtWidgets.QRadioButton("SA Mode")
+        self.device_mode_group = QtWidgets.QButtonGroup(self)
+        self.device_mode_group.addButton(self.vna_radio, 1)
+        self.device_mode_group.addButton(self.sa_radio, 2)
+        self.device_mode_group.buttonClicked.connect(self._on_device_mode_changed)
+        mode_layout.addWidget(QtWidgets.QLabel("Measurement Mode:"))
+        mode_layout.addWidget(self.vna_radio)
+        mode_layout.addWidget(self.sa_radio)
+        mode_layout.addStretch(1)
+        layout.addLayout(mode_layout, 0, 0, 1, 3)
+
         self.refresh_button = QtWidgets.QPushButton("Refresh")
         self.refresh_button.clicked.connect(self._refresh_devices)
 
@@ -858,13 +1441,21 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         self.lmx_combo.currentIndexChanged.connect(self._on_device_selection_changed)
         self.librevna_combo.currentIndexChanged.connect(self._on_device_selection_changed)
 
-        layout.addWidget(QtWidgets.QLabel("tinySA Port"), 0, 0)
-        layout.addWidget(self.tinysa_combo, 0, 1)
-        layout.addWidget(QtWidgets.QLabel("USB2ANY Serial"), 1, 0)
-        layout.addWidget(self.lmx_combo, 1, 1)
-        layout.addWidget(QtWidgets.QLabel("LibreVNA"), 2, 0)
-        layout.addWidget(self.librevna_combo, 2, 1)
-        layout.addWidget(self.refresh_button, 0, 2, 3, 1)
+        # tinySA row (for SA mode)
+        self.tinysa_label = QtWidgets.QLabel("tinySA Port")
+        layout.addWidget(self.tinysa_label, 1, 0)
+        layout.addWidget(self.tinysa_combo, 1, 1)
+
+        # USB2ANY row (always shown for LMX calibration)
+        layout.addWidget(QtWidgets.QLabel("USB2ANY Serial"), 2, 0)
+        layout.addWidget(self.lmx_combo, 2, 1)
+
+        # LibreVNA row (for VNA mode)
+        self.librevna_label = QtWidgets.QLabel("LibreVNA")
+        layout.addWidget(self.librevna_label, 3, 0)
+        layout.addWidget(self.librevna_combo, 3, 1)
+
+        layout.addWidget(self.refresh_button, 1, 2, 3, 1)
         return group
 
     def _build_calibration_group(self) -> QtWidgets.QGroupBox:
@@ -885,12 +1476,17 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         browse = QtWidgets.QPushButton("Browse")
         browse.clicked.connect(self._browse_output)
 
+        self.lmx_workflow_hint = QtWidgets.QLabel("")
+        self.lmx_workflow_hint.setStyleSheet("color: #b58900; font-style: italic;")
+        self.lmx_workflow_hint.setVisible(False)
+
         layout.addWidget(self.calibrate_tinysa_button, 0, 0)
         layout.addWidget(self.start_button, 0, 1)
         layout.addWidget(self.load_button, 0, 2)
         layout.addWidget(QtWidgets.QLabel("Output .cal"), 1, 0)
         layout.addWidget(self.output_edit, 1, 1)
         layout.addWidget(browse, 1, 2)
+        layout.addWidget(self.lmx_workflow_hint, 2, 0, 1, 3)
         return group
 
     def _build_librevna_calibration_group(self) -> QtWidgets.QGroupBox:
@@ -1035,12 +1631,19 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         button_layout.addWidget(self.librevna_stop_button)
         button_layout.addWidget(self.librevna_reset_button)
         layout.addLayout(button_layout)
+
+        self.librevna_workflow_hint = QtWidgets.QLabel("")
+        self.librevna_workflow_hint.setStyleSheet("color: #b58900; font-style: italic;")
+        self.librevna_workflow_hint.setVisible(False)
+        layout.addWidget(self.librevna_workflow_hint)
         return group
 
     def _build_results_group(self) -> QtWidgets.QWidget:
         tabs = QtWidgets.QTabWidget()
         tabs.addTab(self._build_lmx_results_tab(), "LMX2594 Results")
         tabs.addTab(self._build_librevna_results_tab(), "LibreVNA Results")
+        tabs.addTab(self._build_antenna_testing_tab(), "Antenna Testing")
+        self.results_tabs = tabs
         return tabs
 
     def _build_lmx_results_tab(self) -> QtWidgets.QWidget:
@@ -1110,13 +1713,77 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         layout.addWidget(plots)
         return container
 
-    def _build_log_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("Event Log Monitoring")
-        layout = QtWidgets.QVBoxLayout(group)
+    def _build_antenna_testing_tab(self) -> QtWidgets.QWidget:
+        """Build the Antenna Testing tab with golden sample panel and results."""
+        container = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(container)
+        
+        # Splitter for golden sample panel and results
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
+        
+        # Golden sample panel (top)
+        golden_group = QtWidgets.QGroupBox("Golden Sample Selection")
+        golden_layout = QtWidgets.QVBoxLayout(golden_group)
+        self.golden_sample_panel = GoldenSamplePanel()
+        self.golden_sample_panel.sample_confirmed.connect(self._on_golden_sample_confirmed)
+        golden_layout.addWidget(self.golden_sample_panel)
+        splitter.addWidget(golden_group)
+        
+        # Antenna results (bottom)
+        results_group = QtWidgets.QGroupBox("Antenna Test Results")
+        results_layout = QtWidgets.QVBoxLayout(results_group)
+        self.antenna_results_widget = AntennaResultsWidget()
+        results_layout.addWidget(self.antenna_results_widget)
+        splitter.addWidget(results_group)
+        
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 2)
+        layout.addWidget(splitter)
+        
+        # Measurement controls
+        controls_layout = QtWidgets.QHBoxLayout()
+        
+        self.antenna_label_edit = QtWidgets.QLineEdit()
+        self.antenna_label_edit.setPlaceholderText("Antenna label (e.g., Antenna #1)")
+        controls_layout.addWidget(QtWidgets.QLabel("Label:"))
+        controls_layout.addWidget(self.antenna_label_edit)
+        
+        self.measure_antenna_button = QtWidgets.QPushButton("Measure Antenna")
+        self.measure_antenna_button.clicked.connect(self._on_measure_antenna_clicked)
+        controls_layout.addWidget(self.measure_antenna_button)
+        
+        self.save_session_button = QtWidgets.QPushButton("Save Session")
+        self.save_session_button.clicked.connect(self._on_save_session_clicked)
+        controls_layout.addWidget(self.save_session_button)
+        
+        self.load_session_button = QtWidgets.QPushButton("Load Session")
+        self.load_session_button.clicked.connect(self._on_load_session_clicked)
+        controls_layout.addWidget(self.load_session_button)
+        
+        layout.addLayout(controls_layout)
+        
+        return container
+
+    def _build_log_group(self) -> QtWidgets.QWidget:
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+
+        event_group = QtWidgets.QGroupBox("Event Log")
+        event_layout = QtWidgets.QVBoxLayout(event_group)
         self.log_view = QtWidgets.QPlainTextEdit()
         self.log_view.setReadOnly(True)
-        layout.addWidget(self.log_view)
-        return group
+        event_layout.addWidget(self.log_view)
+
+        ipc_group = QtWidgets.QGroupBox("LibreVNA IPC Log")
+        ipc_layout = QtWidgets.QVBoxLayout(ipc_group)
+        self.ipc_log_view = QtWidgets.QPlainTextEdit()
+        self.ipc_log_view.setReadOnly(True)
+        ipc_layout.addWidget(self.ipc_log_view)
+
+        splitter.addWidget(event_group)
+        splitter.addWidget(ipc_group)
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 1)
+        return splitter
 
     def _append_log(self, message: str) -> None:
         stamp = QtCore.QDateTime.currentDateTime().toString("HH:mm:ss")
@@ -1125,7 +1792,14 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         try:
             self.log_view.appendPlainText(f"[{stamp}] {message}")
         except RuntimeError:
-            # QWidget already destroyed during shutdown
+            return
+
+    def _append_ipc_log(self, message: str) -> None:
+        if self._closing or not hasattr(self, "ipc_log_view"):
+            return
+        try:
+            self.ipc_log_view.appendPlainText(message)
+        except RuntimeError:
             return
 
     def _set_busy(self, busy: bool) -> None:
@@ -1218,6 +1892,32 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         self._settings.librevna_serial = self._get_selected_librevna()
         self._save_settings_to_disk()
 
+    def _on_device_mode_changed(self, button: QtWidgets.QAbstractButton) -> None:
+        if button == self.vna_radio:
+            self._device_mode = DeviceMode.VNA
+            self._append_log("Device mode changed to VNA")
+            self._ensure_librevna_ipc()
+        elif button == self.sa_radio:
+            self._device_mode = DeviceMode.SA
+            self._append_log("Device mode changed to SA")
+        else:
+            self._device_mode = DeviceMode.NONE
+        self._update_device_panel_visibility()
+
+    def _update_device_panel_visibility(self) -> None:
+        vna_mode = self._device_mode == DeviceMode.VNA
+        sa_mode = self._device_mode == DeviceMode.SA
+        # tinySA is used for SA mode and for LMX calibration
+        self.tinysa_label.setVisible(True)
+        self.tinysa_combo.setVisible(True)
+        # LibreVNA only visible in VNA mode
+        self.librevna_label.setVisible(vna_mode)
+        self.librevna_combo.setVisible(vna_mode)
+        # Update parameter panels visibility
+        if hasattr(self, "librevna_mag_group"):
+            self.librevna_mag_group.setVisible(vna_mode and self.librevna_show_mag_check.isChecked())
+            self.librevna_phase_group.setVisible(vna_mode and self.librevna_show_phase_check.isChecked())
+
     def _list_usb2any(self) -> Tuple[List[str], int]:
         client = LMXWorkerClient(self._settings.worker_python, on_log=self._append_log)
         try:
@@ -1304,6 +2004,13 @@ class CalibrationWindow(QtWidgets.QMainWindow):
                 self._append_log(f"Auto-detected LibreVNA IPC binary: {candidate}")
                 return
 
+    def _apply_saved_calibration_paths(self) -> None:
+        if self._settings.librevna_cal_path:
+            self.librevna_cal_edit.setText(self._settings.librevna_cal_path)
+            self._append_log(f"Restored LibreVNA calibration path: {self._settings.librevna_cal_path}")
+        if self._settings.golden_gain_threshold != 0.0:
+            self.golden_threshold_spin.setValue(self._settings.golden_gain_threshold)
+
     @staticmethod
     def _prepend_env_path(env: QtCore.QProcessEnvironment, path: str) -> None:
         if not path or not os.path.isdir(path):
@@ -1322,7 +2029,8 @@ class CalibrationWindow(QtWidgets.QMainWindow):
             data = bytes(self._librevna_process.readAllStandardError())
         text = data.decode("utf-8", errors="ignore").strip()
         if text:
-            self._append_log(f"[LibreVNA IPC] {text}")
+            for line in text.split("\n"):
+                self._append_ipc_log(line)
 
     def _refresh_librevna_devices(self) -> None:
         if self._librevna_device_worker and self._librevna_device_worker.isRunning():
@@ -1416,6 +2124,15 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         librevna_serial = data.get("librevna_serial")
         if isinstance(librevna_serial, str) and librevna_serial.strip():
             self._settings.librevna_serial = librevna_serial.strip()
+        tinysa_cal_path = data.get("tinysa_cal_path")
+        if isinstance(tinysa_cal_path, str) and tinysa_cal_path.strip():
+            self._settings.tinysa_cal_path = tinysa_cal_path.strip()
+        librevna_cal_path = data.get("librevna_cal_path")
+        if isinstance(librevna_cal_path, str) and librevna_cal_path.strip():
+            self._settings.librevna_cal_path = librevna_cal_path.strip()
+        golden_gain_threshold = data.get("golden_gain_threshold")
+        if isinstance(golden_gain_threshold, (int, float)):
+            self._settings.golden_gain_threshold = float(golden_gain_threshold)
 
     def _save_settings_to_disk(self) -> None:
         payload = {
@@ -1426,6 +2143,9 @@ class CalibrationWindow(QtWidgets.QMainWindow):
             "librevna_ipc_path": self._settings.librevna_ipc_path,
             "librevna_ipc_name": self._settings.librevna_ipc_name,
             "librevna_serial": self._settings.librevna_serial,
+            "tinysa_cal_path": self._settings.tinysa_cal_path,
+            "librevna_cal_path": self._settings.librevna_cal_path,
+            "golden_gain_threshold": self._settings.golden_gain_threshold,
         }
         try:
             with open(CONFIG_PATH, "w", encoding="utf-8") as handle:
@@ -1819,6 +2539,437 @@ class CalibrationWindow(QtWidgets.QMainWindow):
         self._append_log(f"Calibration failed: {message}")
         self._set_busy(False)
 
+    # --- Workflow Methods ---
+
+    def _update_workflow_ui(self) -> None:
+        state = self._workflow_state
+        step_text = {
+            WorkflowState.IDLE: "Workflow: Idle",
+            WorkflowState.DEVICE_SELECTION: "Phase 1: Select Device Mode",
+            WorkflowState.LIBREVNA_CALIBRATION: "Phase 1: LibreVNA Calibration",
+            WorkflowState.TINYSA_CALIBRATION: "Phase 1: tinySA Calibration",
+            WorkflowState.REFERENCE_ANTENNA_MEASUREMENT: "Phase 1: Reference Antenna",
+            WorkflowState.LMX_CALIBRATION: "Phase 1: LMX2594 Calibration",
+            WorkflowState.LMX_CALIBRATION_COMPLETE: "Phase 1: Calibration Complete",
+            WorkflowState.ANTENNA_MEASUREMENT_LOOP: "Phase 2: Antenna Measurement",
+            WorkflowState.GOLDEN_SAMPLE_SELECTION: "Phase 2: Select Golden Sample",
+            WorkflowState.ANTENNA_MEASUREMENT: "Phase 2: Antenna Measurement",
+            WorkflowState.ANTENNA_COMPLETE: "Phase 2: Measurement Complete",
+            WorkflowState.GOLDEN_SAMPLE_CHECK: "Phase 2: Golden Sample Check",
+            WorkflowState.PRODUCTION_TESTING: "Phase 3: Production Testing",
+            WorkflowState.WORKFLOW_COMPLETE: "Workflow Complete",
+            WorkflowState.WORKFLOW_CANCELLED: "Workflow Cancelled",
+        }.get(state, "Workflow: Unknown")
+
+        instruction_text = {
+            WorkflowState.IDLE: "Click 'Start Workflow' to begin guided calibration",
+            WorkflowState.DEVICE_SELECTION: "Select VNA or SA mode, then click 'Next Step'",
+            WorkflowState.LIBREVNA_CALIBRATION: "Perform LibreVNA open/short/load calibration",
+            WorkflowState.TINYSA_CALIBRATION: "Click 'Calibrate tinySA' to calibrate",
+            WorkflowState.REFERENCE_ANTENNA_MEASUREMENT: "Connect reference antenna and measure",
+            WorkflowState.LMX_CALIBRATION: "Running LMX2594 calibration...",
+            WorkflowState.LMX_CALIBRATION_COMPLETE: "Calibration complete. Click 'Next Step'",
+            WorkflowState.ANTENNA_MEASUREMENT_LOOP: "Measure antennas to find golden sample candidates",
+            WorkflowState.GOLDEN_SAMPLE_SELECTION: "Select a golden sample from candidates",
+            WorkflowState.ANTENNA_MEASUREMENT: "Running antenna measurement...",
+            WorkflowState.ANTENNA_COMPLETE: "Click 'Next Step' to continue",
+            WorkflowState.GOLDEN_SAMPLE_CHECK: "Checking against golden sample...",
+            WorkflowState.PRODUCTION_TESTING: "Measure antennas for PASS/FAIL testing",
+            WorkflowState.WORKFLOW_COMPLETE: "All steps complete. Check results below.",
+            WorkflowState.WORKFLOW_CANCELLED: "Workflow was cancelled.",
+        }.get(state, "")
+
+        self.workflow_step_label.setText(step_text)
+        self.workflow_instruction_label.setText(instruction_text)
+
+        # Update checklist indicators
+        self._update_checklist_indicators()
+
+        # Enable/disable workflow buttons
+        in_progress = state in (
+            WorkflowState.LMX_CALIBRATION,
+            WorkflowState.ANTENNA_MEASUREMENT,
+            WorkflowState.GOLDEN_SAMPLE_CHECK,
+            WorkflowState.LIBREVNA_CALIBRATION,
+            WorkflowState.TINYSA_CALIBRATION,
+            WorkflowState.REFERENCE_ANTENNA_MEASUREMENT,
+        )
+        awaiting_next = state in (
+            WorkflowState.DEVICE_SELECTION,
+            WorkflowState.LMX_CALIBRATION_COMPLETE,
+            WorkflowState.ANTENNA_COMPLETE,
+            WorkflowState.ANTENNA_MEASUREMENT_LOOP,
+            WorkflowState.GOLDEN_SAMPLE_SELECTION,
+        )
+        workflow_active = state not in (
+            WorkflowState.IDLE,
+            WorkflowState.WORKFLOW_COMPLETE,
+            WorkflowState.WORKFLOW_CANCELLED,
+        )
+
+        self.start_workflow_button.setEnabled(not workflow_active)
+        self.next_step_button.setEnabled(awaiting_next)
+        self.cancel_workflow_button.setEnabled(workflow_active)
+
+        # Color-code status bar
+        if state == WorkflowState.WORKFLOW_COMPLETE:
+            self.workflow_step_label.setStyleSheet("color: #0a7f2e; font-weight: bold;")
+        elif state == WorkflowState.WORKFLOW_CANCELLED:
+            self.workflow_step_label.setStyleSheet("color: #c1121f; font-weight: bold;")
+        elif in_progress:
+            self.workflow_step_label.setStyleSheet("color: #b58900; font-weight: bold;")
+        else:
+            self.workflow_step_label.setStyleSheet("font-weight: bold;")
+
+        # Update inline hints
+        lmx_hint_text = ""
+        librevna_hint_text = ""
+        if state == WorkflowState.DEVICE_SELECTION:
+            lmx_hint_text = "Waiting: Select device mode above to proceed"
+        elif state == WorkflowState.LMX_CALIBRATION:
+            lmx_hint_text = "Running: LMX2594 calibration in progress..."
+        elif state == WorkflowState.LMX_CALIBRATION_COMPLETE:
+            lmx_hint_text = "Complete: Click 'Next Step' to continue"
+        elif state == WorkflowState.ANTENNA_MEASUREMENT:
+            if self._device_mode == DeviceMode.VNA:
+                librevna_hint_text = "Running: VNA antenna measurement in progress..."
+            else:
+                lmx_hint_text = "Running: SA antenna measurement in progress..."
+        elif state == WorkflowState.ANTENNA_COMPLETE:
+            librevna_hint_text = "Complete: Click 'Next Step' to check golden sample"
+
+        self.lmx_workflow_hint.setText(lmx_hint_text)
+        self.lmx_workflow_hint.setVisible(bool(lmx_hint_text))
+        self.librevna_workflow_hint.setText(librevna_hint_text)
+        self.librevna_workflow_hint.setVisible(bool(librevna_hint_text))
+
+    def _update_checklist_indicators(self) -> None:
+        """Update the checklist indicators based on workflow results."""
+        results = self._workflow_results
+        
+        # LibreVNA calibration
+        if results.get("librevna_calibrated"):
+            self.check_librevna_cal.setText("[X] LibreVNA Cal")
+            self.check_librevna_cal.setStyleSheet("color: #0a7f2e;")
+        else:
+            self.check_librevna_cal.setText("[ ] LibreVNA Cal")
+            self.check_librevna_cal.setStyleSheet("color: gray;")
+        
+        # tinySA calibration
+        if results.get("tinysa_calibrated"):
+            self.check_tinysa_cal.setText("[X] tinySA Cal")
+            self.check_tinysa_cal.setStyleSheet("color: #0a7f2e;")
+        else:
+            self.check_tinysa_cal.setText("[ ] tinySA Cal")
+            self.check_tinysa_cal.setStyleSheet("color: gray;")
+        
+        # Reference antenna
+        if results.get("reference_antenna_measured"):
+            self.check_ref_antenna.setText("[X] Reference Antenna")
+            self.check_ref_antenna.setStyleSheet("color: #0a7f2e;")
+        else:
+            self.check_ref_antenna.setText("[ ] Reference Antenna")
+            self.check_ref_antenna.setStyleSheet("color: gray;")
+        
+        # Golden sample
+        if results.get("golden_sample_selected"):
+            self.check_golden_sample.setText("[X] Golden Sample")
+            self.check_golden_sample.setStyleSheet("color: #0a7f2e;")
+        else:
+            self.check_golden_sample.setText("[ ] Golden Sample")
+            self.check_golden_sample.setStyleSheet("color: gray;")
+
+    def _transition_workflow(self, new_state: WorkflowState) -> None:
+        old_state = self._workflow_state
+        self._workflow_state = new_state
+        self._append_log(f"Workflow: {old_state.name} -> {new_state.name}")
+        self._update_workflow_ui()
+
+    def _start_guided_workflow(self) -> None:
+        self._append_log("Starting guided calibration workflow")
+        self._workflow_results = {}
+        self._transition_workflow(WorkflowState.DEVICE_SELECTION)
+
+    def _advance_workflow(self) -> None:
+        state = self._workflow_state
+        if state == WorkflowState.DEVICE_SELECTION:
+            if self._device_mode == DeviceMode.NONE:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "Device Mode Required",
+                    "Please select VNA or SA mode before continuing.",
+                )
+                return
+            # Start calibration phase
+            if self._device_mode == DeviceMode.VNA:
+                self._transition_workflow(WorkflowState.LIBREVNA_CALIBRATION)
+                self._show_librevna_calibration_guide()
+            else:
+                self._transition_workflow(WorkflowState.TINYSA_CALIBRATION)
+                self._run_tinysa_calibration()
+        elif state == WorkflowState.LIBREVNA_CALIBRATION:
+            self._workflow_results["librevna_calibrated"] = True
+            self._transition_workflow(WorkflowState.TINYSA_CALIBRATION)
+            self._run_tinysa_calibration()
+        elif state == WorkflowState.TINYSA_CALIBRATION:
+            self._workflow_results["tinysa_calibrated"] = True
+            self._transition_workflow(WorkflowState.LMX_CALIBRATION)
+            self._run_lmx_calibration_step()
+        elif state == WorkflowState.LMX_CALIBRATION_COMPLETE:
+            # Move to antenna measurement loop for golden sample selection
+            self._transition_workflow(WorkflowState.ANTENNA_MEASUREMENT_LOOP)
+            # Switch to Antenna Testing tab
+            if hasattr(self, 'results_tabs'):
+                self.results_tabs.setCurrentIndex(2)
+        elif state == WorkflowState.ANTENNA_MEASUREMENT_LOOP:
+            # Check if we have candidates
+            if not self.golden_sample_panel._candidates:
+                QtWidgets.QMessageBox.warning(
+                    self, "No Candidates",
+                    "Measure at least one antenna before selecting golden sample."
+                )
+                return
+            self._transition_workflow(WorkflowState.GOLDEN_SAMPLE_SELECTION)
+        elif state == WorkflowState.GOLDEN_SAMPLE_SELECTION:
+            # Wait for user to confirm golden sample via panel
+            if not self._workflow_results.get("golden_sample_selected"):
+                QtWidgets.QMessageBox.information(
+                    self, "Select Golden Sample",
+                    "Click on a candidate and press 'Confirm Golden Sample'."
+                )
+                return
+            self._transition_workflow(WorkflowState.PRODUCTION_TESTING)
+        elif state == WorkflowState.ANTENNA_COMPLETE:
+            self._transition_workflow(WorkflowState.GOLDEN_SAMPLE_CHECK)
+            self._run_golden_sample_check()
+
+    def _show_librevna_calibration_guide(self) -> None:
+        """Show LibreVNA calibration instructions."""
+        msg = QtWidgets.QMessageBox(self)
+        msg.setWindowTitle("LibreVNA Calibration")
+        msg.setText("Perform LibreVNA Open/Short/Load calibration:")
+        msg.setInformativeText(
+            "1. Connect OPEN standard and click OK\n"
+            "2. Connect SHORT standard and click OK\n"
+            "3. Connect LOAD standard and click OK\n\n"
+            "When complete, click 'Next Step' to continue."
+        )
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.exec()
+
+    def _cancel_workflow(self) -> None:
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            "Cancel Workflow",
+            "Are you sure you want to cancel the workflow?",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No,
+        )
+        if reply == QtWidgets.QMessageBox.Yes:
+            self._append_log("Workflow cancelled by user")
+            # Stop any running workers
+            if self._worker and self._worker.isRunning():
+                self._worker.request_stop()
+            if self._librevna_sweep_worker and self._librevna_sweep_worker.isRunning():
+                self._librevna_sweep_worker.terminate()
+            self._transition_workflow(WorkflowState.WORKFLOW_CANCELLED)
+
+    # --- Workflow Step Execution ---
+
+    def _run_lmx_calibration_step(self) -> None:
+        if self._worker and self._worker.isRunning():
+            self._append_log("LMX calibration already running")
+            return
+
+        try:
+            config = self._build_config()
+        except Exception as exc:
+            self._append_log(f"Invalid LMX settings: {exc}")
+            self._transition_workflow(WorkflowState.WORKFLOW_CANCELLED)
+            return
+
+        self.results_table.setRowCount(0)
+        self.plot_widget.clear()
+        self._set_busy(True)
+
+        self._worker = CalibrationWorker(
+            config=config,
+            port=self._get_selected_port(),
+            lmx_serial=self._get_selected_lmx(),
+            worker_python=self._settings.worker_python,
+        )
+        self._worker.log.connect(self._append_log)
+        self._worker.point.connect(self._handle_point)
+        self._worker.done.connect(self._handle_lmx_workflow_done)
+        self._worker.failed.connect(self._handle_lmx_workflow_failed)
+        self._worker.start()
+
+    def _handle_lmx_workflow_done(self, points: List[CalibrationPoint]) -> None:
+        self._set_busy(False)
+        self._append_log(f"LMX calibration complete: {len(points)} points")
+        self._workflow_results["lmx_points"] = points
+
+        # Save calibration file
+        stamp = QtCore.QDateTime.currentDateTimeUtc().toString("yyyyMMdd_HHmmss")
+        out_path = self.output_edit.text().strip()
+        if not out_path:
+            out_path = os.path.join("calibration", f"lmx_workflow_{stamp}.cal")
+        try:
+            self._save_calibration(out_path, points)
+            self._append_log(f"Saved LMX calibration: {out_path}")
+            self._settings.tinysa_cal_path = out_path
+            self._save_settings_to_disk()
+        except Exception as exc:
+            self._append_log(f"Failed to save LMX calibration: {exc}")
+
+        self._transition_workflow(WorkflowState.LMX_CALIBRATION_COMPLETE)
+
+    def _handle_lmx_workflow_failed(self, message: str) -> None:
+        self._set_busy(False)
+        self._append_log(f"LMX calibration failed: {message}")
+        self._transition_workflow(WorkflowState.WORKFLOW_CANCELLED)
+
+    def _run_antenna_measurement_step(self) -> None:
+        if self._device_mode == DeviceMode.VNA:
+            self._run_antenna_vna_measurement()
+        elif self._device_mode == DeviceMode.SA:
+            self._run_antenna_sa_measurement()
+        else:
+            self._append_log("No device mode selected")
+            self._transition_workflow(WorkflowState.WORKFLOW_CANCELLED)
+
+    def _run_antenna_vna_measurement(self) -> None:
+        if self._librevna_sweep_worker and self._librevna_sweep_worker.isRunning():
+            self._append_log("LibreVNA sweep already running")
+            return
+
+        try:
+            config = self._build_librevna_config()
+        except Exception as exc:
+            self._append_log(f"LibreVNA config invalid: {exc}")
+            self._transition_workflow(WorkflowState.WORKFLOW_CANCELLED)
+            return
+
+        self._ensure_librevna_ipc()
+        self.librevna_results_table.setRowCount(0)
+        self.librevna_mag_plot.clear()
+        self.librevna_phase_plot.clear()
+        self._librevna_trace = []
+        self._set_librevna_busy(True)
+        self.librevna_status_label.setText("Status: Running (Workflow)")
+
+        payload: Dict[str, object] = {
+            "cal_path": config.cal_path,
+            "f_start_hz": config.f_start_hz,
+            "f_stop_hz": config.f_stop_hz,
+            "points": config.points,
+            "ifbw_hz": config.ifbw_hz,
+            "power_dbm": config.power_dbm,
+            "threshold_db": config.threshold_db,
+            "timeout_ms": config.timeout_ms,
+            "excited_ports": config.excited_ports,
+        }
+        if config.serial and config.serial.lower() != "auto":
+            payload["serial"] = config.serial
+
+        worker = LibreVNARequestWorker(
+            server_name=normalize_ipc_name(self._settings.librevna_ipc_name),
+            cmd="run_sweep",
+            payload=payload,
+            timeout_ms=int(config.timeout_ms) + 5000,
+        )
+        worker.log.connect(self._append_log)
+        worker.done.connect(self._handle_antenna_vna_done)
+        worker.failed.connect(self._handle_antenna_vna_failed)
+        self._librevna_sweep_worker = worker
+        worker.start()
+
+    def _handle_antenna_vna_done(self, payload: Dict[str, object]) -> None:
+        self._set_librevna_busy(False)
+        self.librevna_status_label.setText("Status: Complete (Workflow)")
+        self._update_librevna_results(payload)
+
+        # Extract S21 gain for golden sample comparison
+        trace = payload.get("trace", [])
+        s21_gains: List[float] = []
+        for entry in trace:
+            if not isinstance(entry, dict):
+                continue
+            s21 = entry.get("S21")
+            if isinstance(s21, dict):
+                real = s21.get("real", 0)
+                imag = s21.get("imag", 0)
+                if isinstance(real, (int, float)) and isinstance(imag, (int, float)):
+                    value = complex(real, imag)
+                    mag_db = -300.0 if value == 0 else 20.0 * math.log10(abs(value))
+                    s21_gains.append(mag_db)
+
+        if s21_gains:
+            avg_gain = sum(s21_gains) / len(s21_gains)
+            max_gain = max(s21_gains)
+            self._workflow_results["antenna_gain_avg"] = avg_gain
+            self._workflow_results["antenna_gain_max"] = max_gain
+            self._append_log(f"VNA S21 gain: avg={avg_gain:.2f} dB, max={max_gain:.2f} dB")
+
+        self._workflow_results["vna_payload"] = payload
+        self._transition_workflow(WorkflowState.ANTENNA_COMPLETE)
+
+    def _handle_antenna_vna_failed(self, message: str) -> None:
+        self._set_librevna_busy(False)
+        self.librevna_status_label.setText("Status: Failed (Workflow)")
+        self._append_log(f"VNA antenna measurement failed: {message}")
+        self._transition_workflow(WorkflowState.WORKFLOW_CANCELLED)
+
+    def _run_antenna_sa_measurement(self) -> None:
+        # SA mode reuses the tinySA for a single-point gain check
+        # This is a simplified implementation - could be expanded
+        self._append_log("SA mode antenna measurement: using tinySA gain data from LMX calibration")
+        lmx_points = self._workflow_results.get("lmx_points", [])
+        if lmx_points:
+            offsets = [p.offset_db for p in lmx_points]
+            avg_offset = sum(offsets) / len(offsets) if offsets else 0.0
+            self._workflow_results["antenna_gain_avg"] = avg_offset
+            self._workflow_results["antenna_gain_max"] = max(offsets) if offsets else 0.0
+            self._append_log(f"SA gain offset: avg={avg_offset:.2f} dB")
+        self._transition_workflow(WorkflowState.ANTENNA_COMPLETE)
+
+    def _run_golden_sample_check(self) -> None:
+        threshold = float(self.golden_threshold_spin.value())
+        tolerance = float(self.golden_tolerance_spin.value())
+        measured_gain = self._workflow_results.get("antenna_gain_avg", 0.0)
+
+        self._append_log(
+            f"Golden sample check: measured={measured_gain:.2f} dB, "
+            f"threshold={threshold:.2f} dB, tolerance=±{tolerance:.2f} dB"
+        )
+
+        lower_bound = threshold - tolerance
+        upper_bound = threshold + tolerance
+        passed = lower_bound <= measured_gain <= upper_bound
+
+        self._workflow_results["golden_passed"] = passed
+        self._workflow_results["golden_threshold"] = threshold
+        self._workflow_results["golden_tolerance"] = tolerance
+
+        if passed:
+            self._append_log(f"PASS: Measured gain {measured_gain:.2f} dB within [{lower_bound:.2f}, {upper_bound:.2f}] dB")
+            result_msg = f"PASS - Gain: {measured_gain:.2f} dB"
+            color = "#0a7f2e"
+        else:
+            self._append_log(f"FAIL: Measured gain {measured_gain:.2f} dB outside [{lower_bound:.2f}, {upper_bound:.2f}] dB")
+            result_msg = f"FAIL - Gain: {measured_gain:.2f} dB"
+            color = "#c1121f"
+
+        QtWidgets.QMessageBox.information(
+            self,
+            "Golden Sample Result",
+            f"Result: {result_msg}\n\n"
+            f"Threshold: {threshold:.2f} ± {tolerance:.2f} dB\n"
+            f"Measured: {measured_gain:.2f} dB",
+        )
+
+        self._transition_workflow(WorkflowState.WORKFLOW_COMPLETE)
+
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         self._closing = True
         self._append_log("GUI close requested, stopping workers")
@@ -1920,6 +3071,183 @@ class CalibrationWindow(QtWidgets.QMainWindow):
                 continue
             self._handle_point(point)
         self._append_log(f"Loaded calibration file: {path}")
+
+    # --- Antenna Testing Methods ---
+
+    def _on_golden_sample_confirmed(self, sample: AntennaMeasurement) -> None:
+        """Handle golden sample confirmation from the panel."""
+        self._append_log(f"Golden sample confirmed: {sample.label} ({sample.gain_db:.2f} dB)")
+        self._workflow_results["golden_sample_selected"] = True
+        self._workflow_results["golden_sample"] = sample
+        
+        tolerance = self.golden_sample_panel.tolerance_spin.value()
+        self.antenna_results_widget.set_golden_sample(sample, tolerance)
+        
+        self._update_checklist_indicators()
+        
+        # Transition to production testing if in workflow
+        if self._workflow_state == WorkflowState.GOLDEN_SAMPLE_SELECTION:
+            self._transition_workflow(WorkflowState.PRODUCTION_TESTING)
+            # Switch to Antenna Testing tab
+            if hasattr(self, 'results_tabs'):
+                self.results_tabs.setCurrentIndex(2)
+
+    def _on_measure_antenna_clicked(self) -> None:
+        """Handle measure antenna button click."""
+        label = self.antenna_label_edit.text().strip()
+        if not label:
+            # Auto-generate label
+            count = len(self.antenna_results_widget.get_measurements()) + 1
+            count += len(self.golden_sample_panel._candidates)
+            label = f"Antenna #{count}"
+            self.antenna_label_edit.setText(label)
+        
+        self._append_log(f"Measuring antenna: {label}")
+        self._run_single_antenna_measurement(label)
+
+    def _run_single_antenna_measurement(self, label: str) -> None:
+        """Run a single antenna measurement using tinySA."""
+        # Get frequency from settings
+        try:
+            freq_hz = parse_frequency(self.start_freq_edit.text())
+        except Exception:
+            freq_hz = 3.5e9
+        
+        tx_power = float(self.requested_dbm_edit.value())
+        
+        # Create measurement worker
+        self._antenna_measure_worker = AntennaMeasurementWorker(
+            port=self._get_selected_port(),
+            frequency_hz=freq_hz,
+            tx_power_dbm=tx_power,
+            label=label,
+            debug=self._settings.tinysa_debug,
+        )
+        self._antenna_measure_worker.log.connect(self._append_log)
+        self._antenna_measure_worker.done.connect(self._handle_antenna_measurement_done)
+        self._antenna_measure_worker.failed.connect(self._handle_antenna_measurement_failed)
+        
+        self.measure_antenna_button.setEnabled(False)
+        self._antenna_measure_worker.start()
+
+    def _handle_antenna_measurement_done(self, measurement: AntennaMeasurement) -> None:
+        """Handle completed antenna measurement."""
+        self.measure_antenna_button.setEnabled(True)
+        self._append_log(f"Antenna measured: {measurement.label} = {measurement.gain_db:.2f} dB")
+        
+        # Clear the label field for next measurement
+        self.antenna_label_edit.clear()
+        
+        # Check workflow state to determine where to add the measurement
+        state = self._workflow_state
+        if state in (WorkflowState.ANTENNA_MEASUREMENT_LOOP, WorkflowState.GOLDEN_SAMPLE_SELECTION):
+            # Add to golden sample candidates
+            self.golden_sample_panel.add_candidate(measurement)
+            self._append_log(f"Added to golden sample candidates")
+        elif state == WorkflowState.PRODUCTION_TESTING:
+            # Add to production test results
+            self.antenna_results_widget.add_measurement(measurement)
+        else:
+            # Default: add to both if golden sample not yet selected
+            if not self._workflow_results.get("golden_sample_selected"):
+                self.golden_sample_panel.add_candidate(measurement)
+            else:
+                self.antenna_results_widget.add_measurement(measurement)
+
+    def _handle_antenna_measurement_failed(self, message: str) -> None:
+        """Handle failed antenna measurement."""
+        self.measure_antenna_button.setEnabled(True)
+        self._append_log(f"Antenna measurement failed: {message}")
+        QtWidgets.QMessageBox.warning(
+            self, "Measurement Failed",
+            f"Failed to measure antenna:\n{message}"
+        )
+
+    def _on_save_session_clicked(self) -> None:
+        """Save the current antenna testing session to JSON."""
+        path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self, "Save Session", "", "JSON Files (*.json)"
+        )
+        if not path:
+            return
+        
+        self._save_antenna_session(path)
+
+    def _save_antenna_session(self, path: str) -> None:
+        """Save antenna testing session to file."""
+        golden = self._workflow_results.get("golden_sample")
+        tolerance = self.golden_sample_panel.tolerance_spin.value()
+        
+        data = {
+            "type": "antenna_test_session",
+            "created_at": _utc_now(),
+            "golden_sample": golden.as_dict() if golden else None,
+            "tolerance_db": tolerance,
+            "candidates": [m.as_dict() for m in self.golden_sample_panel._candidates],
+            "measurements": [m.as_dict() for m in self.antenna_results_widget.get_measurements()],
+        }
+        
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+            self._append_log(f"Session saved: {path}")
+        except Exception as exc:
+            self._append_log(f"Failed to save session: {exc}")
+
+    def _on_load_session_clicked(self) -> None:
+        """Load an antenna testing session from JSON."""
+        path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Load Session", "", "JSON Files (*.json)"
+        )
+        if not path:
+            return
+        
+        self._load_antenna_session(path)
+
+    def _load_antenna_session(self, path: str) -> None:
+        """Load antenna testing session from file."""
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as exc:
+            self._append_log(f"Failed to load session: {exc}")
+            return
+        
+        # Clear existing data
+        self.golden_sample_panel.clear_candidates()
+        self.antenna_results_widget.clear()
+        
+        # Load tolerance
+        tolerance = data.get("tolerance_db", 3.0)
+        self.golden_sample_panel.tolerance_spin.setValue(tolerance)
+        
+        # Load candidates
+        for entry in data.get("candidates", []):
+            try:
+                m = AntennaMeasurement.from_dict(entry)
+                self.golden_sample_panel._candidates.append(m)
+            except Exception:
+                continue
+        self.golden_sample_panel._update_candidates_list()
+        
+        # Load golden sample
+        golden_data = data.get("golden_sample")
+        if golden_data:
+            golden = AntennaMeasurement.from_dict(golden_data)
+            self._workflow_results["golden_sample"] = golden
+            self._workflow_results["golden_sample_selected"] = True
+            self.antenna_results_widget.set_golden_sample(golden, tolerance)
+            self._update_checklist_indicators()
+        
+        # Load measurements
+        for entry in data.get("measurements", []):
+            try:
+                m = AntennaMeasurement.from_dict(entry)
+                self.antenna_results_widget.add_measurement(m)
+            except Exception:
+                continue
+        
+        self._append_log(f"Session loaded: {path}")
 
 
 def main() -> int:
