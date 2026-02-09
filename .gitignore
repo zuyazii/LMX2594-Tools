@@ -24,7 +24,6 @@ scripts/vna/cpp/bin
 scripts/vna/cpp/.cache
 scripts/vna/cpp/build
 scripts/vna/cpp/prebuilt
-scripts/vna/cpp/LibreVNA-GUI_Source
 
 # Temporary log files
 *.log

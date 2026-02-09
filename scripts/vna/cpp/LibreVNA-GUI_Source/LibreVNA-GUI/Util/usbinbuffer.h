@@ -1,0 +1,46 @@
+#ifndef USBINBUFFER_H
+#define USBINBUFFER_H
+
+#include <qglobal.h>
+
+#ifdef Q_OS_MACOS
+#include <libusb.h>
+#else
+#include <libusb-1.0/libusb.h>
+#endif
+#include <condition_variable>
+
+#include <QObject>
+#include <functional>
+
+class USBInBuffer : public QObject {
+    Q_OBJECT
+public:
+    USBInBuffer(libusb_device_handle *handle, unsigned char endpoint, int buffer_size);
+    ~USBInBuffer();
+
+    void removeBytes(int handled_bytes);
+    int getReceived() const;
+    uint8_t *getBuffer() const;
+
+    // Direct callback for use from non-Qt threads (bypasses Qt signal system)
+    void setDirectCallback(std::function<void()> cb) { directCallback = cb; }
+
+signals:
+    void DataReceived();
+    void TransferError();
+
+private:
+    std::function<void()> directCallback;
+    void Callback(libusb_transfer *transfer);
+    static void LIBUSB_CALL CallbackTrampoline(libusb_transfer *transfer);
+    libusb_transfer *transfer;
+    unsigned char *buffer;
+    int buffer_size;
+    int received_size;
+    bool inCallback;
+    bool cancelling;
+    std::condition_variable cv;
+};
+
+#endif // USBINBUFFER_H
