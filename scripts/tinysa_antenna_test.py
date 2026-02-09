@@ -631,19 +631,21 @@ class LMXController:
         if not self._lmx:
             raise LMXError("LMX not connected")
 
-        reg_map, _plan = self._build_registers_from_template(
+        reg_map, plan = self._build_registers_from_template(
             freq_hz, self._f_osc, self._template_map, outa_pwr=self._outa_pwr
         )
         register_list = reg_map_to_list(reg_map)
         self._lmx.program_registers(register_list, r0_value=self._r0_value)
         self._lmx.configure_muxout_lock_detect()
+        self._last_plan = plan
+        self._last_freq_hz = freq_hz
         return reg_map
 
     def update_frequency(self, freq_hz: float, prev_reg_map: Optional[Dict[int, int]]) -> Dict[int, int]:
         if not self._lmx:
             raise LMXError("LMX not connected")
 
-        reg_map, _plan = self._build_registers_from_template(
+        reg_map, plan = self._build_registers_from_template(
             freq_hz, self._f_osc, self._template_map, outa_pwr=self._outa_pwr
         )
         if self._delta_update and prev_reg_map is not None:
@@ -652,7 +654,17 @@ class LMXController:
             self._lmx.fast_update_frequency(reg_map, write_addrs=write_addrs)
         else:
             self._lmx.fast_update_frequency(reg_map)
+        self._last_plan = plan
+        self._last_freq_hz = freq_hz
         return reg_map
+
+    def get_last_plan(self) -> Optional[Dict[str, Any]]:
+        """Return the last frequency plan computed."""
+        return getattr(self, '_last_plan', None)
+
+    def get_last_freq_hz(self) -> Optional[float]:
+        """Return the last programmed frequency in Hz."""
+        return getattr(self, '_last_freq_hz', None)
 
 
 def write_csv(path: str, rows: Iterable[List[object]], header: List[str]) -> None:

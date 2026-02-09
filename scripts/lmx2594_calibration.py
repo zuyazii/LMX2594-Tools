@@ -65,6 +65,60 @@ def load_calibration_file(path: str) -> Dict[str, object]:
         return json.load(handle)
 
 
+def get_calibration_offset(cal_data: Dict[str, object], frequency_hz: float) -> float:
+    """
+    Get calibration offset for a given frequency using linear interpolation.
+    
+    Args:
+        cal_data: Calibration data loaded from JSON file
+        frequency_hz: Frequency in Hz to get offset for
+    
+    Returns:
+        Offset in dB to apply to measurements
+    """
+    measurements = cal_data.get("measurements", [])
+    if not measurements:
+        return 0.0
+    
+    # Extract frequency and offset pairs
+    freq_offset_pairs = [(m["frequency_hz"], m["offset_db"]) for m in measurements]
+    freq_offset_pairs.sort(key=lambda x: x[0])
+    
+    # If frequency is outside calibration range, use nearest endpoint
+    if frequency_hz <= freq_offset_pairs[0][0]:
+        return freq_offset_pairs[0][1]
+    if frequency_hz >= freq_offset_pairs[-1][0]:
+        return freq_offset_pairs[-1][1]
+    
+    # Linear interpolation
+    for i in range(len(freq_offset_pairs) - 1):
+        f1, offset1 = freq_offset_pairs[i]
+        f2, offset2 = freq_offset_pairs[i + 1]
+        
+        if f1 <= frequency_hz <= f2:
+            # Linear interpolation formula
+            t = (frequency_hz - f1) / (f2 - f1)
+            return offset1 + t * (offset2 - offset1)
+    
+    return 0.0
+
+
+def apply_calibration_to_measurement(measured_dbm: float, cal_data: Dict[str, object], frequency_hz: float) -> float:
+    """
+    Apply calibration offset to a measurement.
+    
+    Args:
+        measured_dbm: Raw measured power in dBm
+        cal_data: Calibration data loaded from JSON file
+        frequency_hz: Frequency of measurement in Hz
+    
+    Returns:
+        Calibrated power in dBm
+    """
+    offset = get_calibration_offset(cal_data, frequency_hz)
+    return measured_dbm - offset
+
+
 @dataclass
 class CalibrationPoint:
     timestamp: str

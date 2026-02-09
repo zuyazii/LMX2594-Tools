@@ -67,14 +67,31 @@ class LMXWorker:
             raise WorkerError("LMX not connected")
         freq_hz = float(payload["freq_hz"])
         self._reg_map = self._lmx.program_initial(freq_hz)
-        return {"status": "ok"}
+        return self._build_freq_response(freq_hz)
 
     def update_frequency(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         if not self._lmx:
             raise WorkerError("LMX not connected")
         freq_hz = float(payload["freq_hz"])
         self._reg_map = self._lmx.update_frequency(freq_hz, self._reg_map)
-        return {"status": "ok"}
+        return self._build_freq_response(freq_hz)
+
+    def _build_freq_response(self, freq_hz: float) -> Dict[str, Any]:
+        """Build response with frequency plan details."""
+        result: Dict[str, Any] = {"status": "ok", "freq_hz": freq_hz}
+        plan = self._lmx.get_last_plan() if self._lmx else None
+        if plan:
+            result["vco_hz"] = plan.get("f_vco")
+            result["chdiv"] = plan.get("chdiv_value")
+            result["n_int"] = plan.get("n_int")
+            result["num"] = plan.get("num")
+            result["den"] = plan.get("den")
+            result["pfd_hz"] = plan.get("f_pd")
+            # Get OUTA_PWR from reg_map R44[13:8]
+            if self._reg_map:
+                r44 = self._reg_map.get(44, 0)
+                result["outa_pwr"] = (r44 >> 8) & 0x3F
+        return result
 
     def wait_lock(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         if not self._lmx:

@@ -2,19 +2,38 @@
 .venv*/
 # Cursor configuration
 .cursor/
+.vscode/
+
 # Cache files
-scripts/__pycache__/
+__pycache__/
+
 # Example repos online
 examples/
+
 # Output files
 output/
+
 # GUI configuration file
 .lmx_gui_config.json
+
 # Documents
 docs/
 
+# Build directories
+scripts/vna/cpp/bin
+scripts/vna/cpp/.cache
 scripts/vna/cpp/build
 scripts/vna/cpp/prebuilt
 scripts/vna/cpp/LibreVNA-GUI_Source
 
-./nul
+# Temporary log files
+*.log
+
+
+# Calibration files
+calibration/tinysa/*
+calibration/librevna/*
+calibration/devices_calibrate.json
+# Examples
+!calibration/librevna/SOLT_12_1_00M-6_00G_500pt.cal
+!calibration/tinysa/tinysa_cal_20260208_003111.json

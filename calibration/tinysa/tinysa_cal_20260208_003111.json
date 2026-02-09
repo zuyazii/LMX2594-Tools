@@ -1,0 +1,160 @@
+{
+  "type": "tinysa_usb2any_calibration",
+  "created_at": "2026-02-08T00:31:11.744174",
+  "metadata": {
+    "start_hz": 3400000000.0,
+    "stop_hz": 3600000000.0,
+    "step_hz": 10000000.0,
+    "points": 21,
+    "requested_dbm": 0.0
+  },
+  "measurements": [
+    {
+      "timestamp": "2026-02-07T16:31:07.721347Z",
+      "frequency_hz": 3400000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -1.03125,
+      "offset_db": -1.03125
+    },
+    {
+      "timestamp": "2026-02-07T16:31:07.923785Z",
+      "frequency_hz": 3410000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -1.03125,
+      "offset_db": -1.03125
+    },
+    {
+      "timestamp": "2026-02-07T16:31:08.098766Z",
+      "frequency_hz": 3420000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.968750016,
+      "offset_db": -0.968750016
+    },
+    {
+      "timestamp": "2026-02-07T16:31:08.300383Z",
+      "frequency_hz": 3430000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.937500032,
+      "offset_db": -0.937500032
+    },
+    {
+      "timestamp": "2026-02-07T16:31:08.473206Z",
+      "frequency_hz": 3440000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.406249984,
+      "offset_db": -0.406249984
+    },
+    {
+      "timestamp": "2026-02-07T16:31:08.690767Z",
+      "frequency_hz": 3450000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.906249984,
+      "offset_db": -0.906249984
+    },
+    {
+      "timestamp": "2026-02-07T16:31:08.894056Z",
+      "frequency_hz": 3460000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.875,
+      "offset_db": -0.875
+    },
+    {
+      "timestamp": "2026-02-07T16:31:09.068520Z",
+      "frequency_hz": 3470000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.343750016,
+      "offset_db": -0.343750016
+    },
+    {
+      "timestamp": "2026-02-07T16:31:09.257313Z",
+      "frequency_hz": 3480000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.343750016,
+      "offset_db": -0.343750016
+    },
+    {
+      "timestamp": "2026-02-07T16:31:09.444250Z",
+      "frequency_hz": 3490000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.812499968,
+      "offset_db": -0.812499968
+    },
+    {
+      "timestamp": "2026-02-07T16:31:09.664407Z",
+      "frequency_hz": 3500000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.781249984,
+      "offset_db": -0.781249984
+    },
+    {
+      "timestamp": "2026-02-07T16:31:09.854035Z",
+      "frequency_hz": 3510000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.75,
+      "offset_db": -0.75
+    },
+    {
+      "timestamp": "2026-02-07T16:31:10.042404Z",
+      "frequency_hz": 3520000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.25,
+      "offset_db": -0.25
+    },
+    {
+      "timestamp": "2026-02-07T16:31:10.244680Z",
+      "frequency_hz": 3530000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.718750016,
+      "offset_db": -0.718750016
+    },
+    {
+      "timestamp": "2026-02-07T16:31:10.429689Z",
+      "frequency_hz": 3540000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.1875,
+      "offset_db": -0.1875
+    },
+    {
+      "timestamp": "2026-02-07T16:31:10.648628Z",
+      "frequency_hz": 3550000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.1875,
+      "offset_db": -0.1875
+    },
+    {
+      "timestamp": "2026-02-07T16:31:10.852033Z",
+      "frequency_hz": 3560000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.15625,
+      "offset_db": -0.15625
+    },
+    {
+      "timestamp": "2026-02-07T16:31:11.040314Z",
+      "frequency_hz": 3570000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.125,
+      "offset_db": -0.125
+    },
+    {
+      "timestamp": "2026-02-07T16:31:11.241207Z",
+      "frequency_hz": 3580000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.09375,
+      "offset_db": -0.09375
+    },
+    {
+      "timestamp": "2026-02-07T16:31:11.428517Z",
+      "frequency_hz": 3590000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.09375,
+      "offset_db": -0.09375
+    },
+    {
+      "timestamp": "2026-02-07T16:31:11.646968Z",
+      "frequency_hz": 3600000000.0,
+      "requested_dbm": 0.0,
+      "measured_dbm": -0.0625,
+      "offset_db": -0.0625
+    }
+  ]
+}
