@@ -145,6 +145,7 @@ class SweepWorker(QtCore.QThread):
         step_value_text: str,
         ipc_name: str,
         parent: Optional[QtCore.QObject] = None,
+        use_lmx: bool = True,
     ):
         super().__init__(parent)
         self._mode = mode
@@ -158,6 +159,8 @@ class SweepWorker(QtCore.QThread):
         self._step_value_text = step_value_text
         self._ipc_name = ipc_name
         self._stop_requested = False
+        # Whether to use USB2ANY/LMX during tinySA sweeps
+        self._use_lmx = bool(use_lmx)
 
     def request_stop(self):
         self._stop_requested = True
@@ -216,7 +219,12 @@ class SweepWorker(QtCore.QThread):
             error_byte=False,
             debug_cb=self.log.emit if bool(self._settings.get("tinysa_debug")) else None,
         )
-        lmx = self.LMXWorkerClient(str(self._settings.get("worker_python", sys.executable)), on_log=self.log.emit)
+        lmx = None
+        if self._use_lmx:
+            lmx = self.LMXWorkerClient(
+                str(self._settings.get("worker_python", sys.executable)),
+                on_log=self.log.emit,
+            )
         results = []
         try:
             template_path = str(self._settings.get("template_path", "")).strip()
@@ -231,18 +239,19 @@ class SweepWorker(QtCore.QThread):
             fosc_hz = parse_frequency(str(self._settings.get("fosc", "50MHz")))
             spi_clock_hz = parse_frequency(str(self._settings.get("spi_clock", "400kHz")))
 
-            self.log.emit(f"Connecting LMX worker (USB2ANY serial={self._lmx_serial or 'Auto'})")
-            lmx.request(
-                {
-                    "cmd": "connect",
-                    "serial": self._lmx_serial,
-                    "f_osc": float(fosc_hz),
-                    "template_path": template_path,
-                    "spi_clock": float(spi_clock_hz),
-                    "delta_update": bool(self._settings.get("delta_update", True)),
-                    "outa_pwr": int(self._settings.get("outa_pwr", 50)),
-                }
-            )
+            if self._use_lmx and lmx is not None:
+                self.log.emit(f"Connecting LMX worker (USB2ANY serial={self._lmx_serial or 'Auto'})")
+                lmx.request(
+                    {
+                        "cmd": "connect",
+                        "serial": self._lmx_serial,
+                        "f_osc": float(fosc_hz),
+                        "template_path": template_path,
+                        "spi_clock": float(spi_clock_hz),
+                        "delta_update": bool(self._settings.get("delta_update", True)),
+                        "outa_pwr": int(self._settings.get("outa_pwr", 50)),
+                    }
+                )
 
             self.log.emit(f"Connecting tinySA (port={self._tinysa_port or 'Auto'})")
             tinysa.connect()
@@ -255,25 +264,26 @@ class SweepWorker(QtCore.QThread):
                 # Emit progress update
                 self.progress_update.emit(idx + 1, len(points))
 
-                if idx == 0:
-                    freq_resp = lmx.request({"cmd": "program_initial", "freq_hz": float(freq_hz)})
-                else:
-                    freq_resp = lmx.request({"cmd": "update_frequency", "freq_hz": float(freq_hz)})
+                if self._use_lmx and lmx is not None:
+                    if idx == 0:
+                        freq_resp = lmx.request({"cmd": "program_initial", "freq_hz": float(freq_hz)})
+                    else:
+                        freq_resp = lmx.request({"cmd": "update_frequency", "freq_hz": float(freq_hz)})
 
-                # Emit frequency plan details for LMX Monitor tab
-                if isinstance(freq_resp, dict):
-                    self.point_update.emit(freq_resp)
+                    # Emit frequency plan details for LMX Monitor tab
+                    if isinstance(freq_resp, dict):
+                        self.point_update.emit(freq_resp)
 
-                if bool(self._settings.get("wait_lock", True)):
-                    lock_resp = lmx.request(
-                        {
-                            "cmd": "wait_lock",
-                            "timeout_s": float(self._settings.get("lock_timeout_s", 1.0)),
-                            "auto_recal": bool(self._settings.get("auto_recal", True)),
-                        }
-                    )
-                    if lock_resp.get("locked") is False:
-                        raise RuntimeError(f"LMX lock failed at {freq_hz:.0f} Hz")
+                    if bool(self._settings.get("wait_lock", True)):
+                        lock_resp = lmx.request(
+                            {
+                                "cmd": "wait_lock",
+                                "timeout_s": float(self._settings.get("lock_timeout_s", 1.0)),
+                                "auto_recal": bool(self._settings.get("auto_recal", True)),
+                            }
+                        )
+                        if lock_resp.get("locked") is False:
+                            raise RuntimeError(f"LMX lock failed at {freq_hz:.0f} Hz")
 
                 dwell_ms = float(self._settings.get("dwell_ms", 0.0))
                 if dwell_ms > 0:
@@ -304,11 +314,12 @@ class SweepWorker(QtCore.QThread):
             self.log.emit(f"tinySA sweep complete ({len(results)} points)")
             return results
         finally:
-            try:
-                lmx.request({"cmd": "disconnect"})
-            except Exception:
-                pass
-            lmx.stop()
+            if self._use_lmx and lmx is not None:
+                try:
+                    lmx.request({"cmd": "disconnect"})
+                except Exception:
+                    pass
+                lmx.stop()
             try:
                 tinysa.disconnect()
             except Exception:
@@ -1180,12 +1191,35 @@ class CalibrationApp(QtWidgets.QMainWindow):
 
         # Warn if tinySA is checked but USB2ANY/LMX is not
         if self.chk_tinysa.isChecked() and not self.chk_usb2any.isChecked():
-            QtWidgets.QMessageBox.warning(
-                self,
-                "Run Sweep",
-                "tinySA sweep requires USB2ANY/LMX to generate the signal.\nEnable USB2ANY/LMX or disable tinySA.",
-            )
-            return
+            if self.chk_librevna.isChecked():
+                # Both tinySA and LibreVNA are on, but USB2ANY/LMX is off
+                reply = QtWidgets.QMessageBox.warning(
+                    self,
+                    "Run Sweep",
+                    "tinySA sweep requires USB2ANY/LMX to generate the signal.\n\n"
+                    "Do you want to disable tinySA and continue with LibreVNA only?",
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                    QtWidgets.QMessageBox.No,
+                )
+                if reply == QtWidgets.QMessageBox.Yes:
+                    # Disable tinySA and continue
+                    self.chk_tinysa.setChecked(False)
+                else:
+                    return
+            else:
+                # Only tinySA is on, USB2ANY/LMX is off - warn but allow to proceed
+                reply = QtWidgets.QMessageBox.warning(
+                    self,
+                    "Run Sweep",
+                    "WARNING: tinySA sweep requires USB2ANY/LMX to generate the signal,\n"
+                    "but no USB2ANY/LMX is enabled.\n\n"
+                    "The tinySA will measure ambient signals only (no LMX frequency control).\n\n"
+                    "Do you want to continue anyway?",
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                    QtWidgets.QMessageBox.No,
+                )
+                if reply == QtWidgets.QMessageBox.No:
+                    return
 
         if mode in ("Both", "LibreVNA only"):
             if not self._ensure_librevna_ipc():
@@ -1196,7 +1230,7 @@ class CalibrationApp(QtWidgets.QMainWindow):
                 )
                 return
 
-        if mode in ("Both", "tinySA only"):
+        if mode in ("Both", "tinySA only") and self.chk_usb2any.isChecked():
             worker_python = self._resolve_worker_python_path(prefer_x86=True)
             self._settings["worker_python"] = worker_python
             bits = self._python_bitness(worker_python)
@@ -1212,7 +1246,7 @@ class CalibrationApp(QtWidgets.QMainWindow):
                 )
                 return
 
-        if mode in ("Both", "tinySA only") and self.sidebar.usb2any_combo.count() <= 1:
+        if mode in ("Both", "tinySA only") and self.chk_usb2any.isChecked() and self.sidebar.usb2any_combo.count() <= 1:
             QtWidgets.QMessageBox.warning(
                 self,
                 "Run Sweep",
@@ -1240,6 +1274,7 @@ class CalibrationApp(QtWidgets.QMainWindow):
             step_value_text=self.sidebar.step_value_edit.text().strip(),
             ipc_name=self._librevna_ipc_name,
             parent=self,
+            use_lmx=self.chk_usb2any.isChecked(),
         )
         worker.log.connect(self.logs_tab.append_event)
         worker.failed.connect(self._on_sweep_failed)
@@ -1364,6 +1399,7 @@ class CalibrationApp(QtWidgets.QMainWindow):
             step_value_text=self.sidebar.step_value_edit.text().strip(),
             ipc_name=self._librevna_ipc_name,
             parent=self,
+            use_lmx=True,
         )
 
         worker.log.connect(self.logs_tab.append_event)
@@ -1955,7 +1991,8 @@ class CalibrationApp(QtWidgets.QMainWindow):
                 step_mode_per_freq=True,
                 step_value_text=f"{step_freq_mhz}MHz",
                 ipc_name=self._librevna_ipc_name,
-                parent=self
+                parent=self,
+                use_lmx=True,
             )
             
             # Connect signals

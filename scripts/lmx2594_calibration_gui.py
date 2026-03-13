@@ -2480,6 +2480,22 @@ class CalibrationWindow(QtWidgets.QMainWindow):
             self._append_log("Worker Python path is empty. Set it in Hidden settings.")
             return
 
+        # Check if USB2ANY/LMX is explicitly selected
+        lmx_selected = self._get_selected_lmx()
+        if not lmx_selected:
+            reply = QtWidgets.QMessageBox.warning(
+                self,
+                "USB2ANY Not Selected",
+                "No USB2ANY device has been explicitly selected.\n\n"
+                "The calibration will attempt to use auto-detection.\n\n"
+                "Do you want to continue?",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.No,
+            )
+            if reply == QtWidgets.QMessageBox.No:
+                self._append_log("Calibration cancelled by user (USB2ANY not selected)")
+                return
+
         self.results_table.setRowCount(0)
         self.plot_widget.clear()
         self._append_log("Start calibration pressed")

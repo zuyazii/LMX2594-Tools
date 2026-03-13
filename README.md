@@ -34,6 +34,56 @@ Notes:
 - `USB2ANY.dll` must stay in the repo root.
 - tinySA Ultra must be in `CONFIG -> Connection -> USB` when using the USB cable.
 
+## Requirements and Dependencies
+
+Python dependencies:
+
+- `requirements.txt` (64-bit GUI):
+  - `pyserial>=3.5`
+  - `tsapython`
+  - `PySide6>=6.5` (preferred GUI backend)
+  - `PyQt5>=5.15` (fallback GUI backend)
+- `requirements-x86.txt` (32-bit worker):
+  - `pyserial>=3.5`
+
+VNA (LibreVNA IPC/CLI) build dependencies (`scripts/vna/cpp`):
+
+- CMake `3.20+`
+- C++17 toolchain (`MSVC x64` recommended; `MinGW64` supported)
+- Qt 6.x modules: `Core`, `Widgets`, `Network`, `Gui`, `Svg`, `OpenGL`
+- `libusb-1.0` (headers + library + runtime DLL)
+
+Windows build prerequisites for VNA tools:
+
+- Visual Studio Build Tools with "Desktop development with C++"
+- Qt 6 MSVC kit matching your compiler (set `Qt6_DIR`)
+- `libusb` (for example via `vcpkg install libusb:x64-windows`)
+
+Example VNA configure/build:
+
+```powershell
+cmake -S scripts\vna\cpp -B scripts\vna\cpp\build -G Ninja `
+  -DQt6_DIR="C:/Qt/6.6.3/msvc2022_64/lib/cmake/Qt6" `
+  -DLIBUSB_INCLUDE_DIR="C:/Users/<you>/vcpkg/installed/x64-windows/include" `
+  -DLIBUSB_LIBRARY="C:/Users/<you>/vcpkg/installed/x64-windows/lib/libusb-1.0.lib"
+
+cmake --build scripts\vna\cpp\build --target librevna-ipc librevna-cli
+```
+
+VNA runtime requirements:
+
+- `librevna-ipc.exe` and `librevna-cli.exe` need Qt runtime DLLs and (if enabled) `libusb-1.0.dll`
+- Keep those DLLs on `PATH` or next to the executable
+- `windeployqt` can be used to collect Qt runtime DLLs
+- In GUI Preferences, set **LibreVNA IPC binary** to your built `librevna-ipc.exe`
+
+Platform-specific USB notes:
+
+- Linux: udev rule template is at `scripts/vna/cpp/LibreVNA-GUI_Source/51-vna.rules`
+- Windows: if USB access fails with libusb, bind device to WinUSB (Zadig)
+
+For full LibreVNA build/deploy details, see `scripts/vna/cpp/README.md`.
+
 ## Quick Start
 
 GUI calibration (64-bit Python):

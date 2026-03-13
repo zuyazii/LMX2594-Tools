@@ -24,6 +24,8 @@ scripts/vna/cpp/bin
 scripts/vna/cpp/.cache
 scripts/vna/cpp/build
 scripts/vna/cpp/prebuilt
+dist/
+scripts/vna/cpp/build-release/
 
 # Temporary log files
 *.log
@@ -36,3 +38,7 @@ calibration/devices_calibrate.json
 # Examples
 !calibration/librevna/SOLT_12_1_00M-6_00G_500pt.cal
 !calibration/tinysa/tinysa_cal_20260208_003111.json
+
+
+!examples/register-values/
+
