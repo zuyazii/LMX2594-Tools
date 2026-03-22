@@ -16,10 +16,10 @@ import uuid
 from typing import Optional, Dict, List
 
 try:
-    from PySide6 import QtCore, QtWidgets
+    from PySide6 import QtCore, QtGui, QtWidgets
     Signal = QtCore.Signal
 except ImportError:
-    from PyQt5 import QtCore, QtWidgets
+    from PyQt5 import QtCore, QtGui, QtWidgets
     Signal = QtCore.pyqtSignal
 
 
@@ -76,8 +76,12 @@ class AntennaRecordDialog(QtWidgets.QDialog):
         self.data_table.horizontalHeader().setStretchLastSection(True)
         data_layout.addWidget(self.data_table)
         
-        # Load existing measurements
+        # Load existing measurements (from measurements or gain_data.points for tested)
         measurements = self._record.get("measurements", [])
+        if not measurements and self._record_type == "tested":
+            gain_data = self._record.get("gain_data", {})
+            if isinstance(gain_data, dict):
+                measurements = gain_data.get("points", [])
         for m in measurements:
             row = self.data_table.rowCount()
             self.data_table.insertRow(row)
@@ -171,14 +175,14 @@ class AntennaTableWidget(QtWidgets.QWidget):
         """Setup the table UI."""
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        
+
         # Title and buttons
         header_layout = QtWidgets.QHBoxLayout()
         title_label = QtWidgets.QLabel(self._title)
         title_label.setStyleSheet("font-weight: bold;")
         header_layout.addWidget(title_label)
         header_layout.addStretch()
-        
+
         # Action buttons
         self.add_btn = QtWidgets.QPushButton("Add")
         self.add_btn.clicked.connect(self._on_add_row)
@@ -190,20 +194,28 @@ class AntennaTableWidget(QtWidgets.QWidget):
         self.import_btn.clicked.connect(self._on_import_json)
         self.export_btn = QtWidgets.QPushButton("Export")
         self.export_btn.clicked.connect(self._on_export_json)
-        
+
         header_layout.addWidget(self.add_btn)
         header_layout.addWidget(self.edit_btn)
         header_layout.addWidget(self.delete_btn)
         header_layout.addWidget(self.import_btn)
         header_layout.addWidget(self.export_btn)
-        
+
         layout.addLayout(header_layout)
-        
+
         # Table - shows summary info
-        self.table = QtWidgets.QTableWidget(0, 4)
-        self.table.setHorizontalHeaderLabels([
-            "ID", "Label", "Points", "Timestamp"
-        ])
+        # Different columns for tested antennas (shows S11 and Gain results)
+        if self._record_type == "tested":
+            self.table = QtWidgets.QTableWidget(0, 8)
+            self.table.setHorizontalHeaderLabels([
+                "ID", "Label", "S11 (dB)", "VSWR", "Gain (dB)", "Offset", "Status", "Timestamp"
+            ])
+        else:
+            self.table = QtWidgets.QTableWidget(0, 4)
+            self.table.setHorizontalHeaderLabels([
+                "ID", "Label", "Points", "Timestamp"
+            ])
+
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
@@ -307,32 +319,128 @@ class AntennaTableWidget(QtWidgets.QWidget):
     def _refresh_table(self):
         """Refresh the table display."""
         self.table.setRowCount(0)
-        for record in self._records:
-            row = self.table.rowCount()
-            self.table.insertRow(row)
-            
-            # ID
-            self.table.setItem(row, 0, QtWidgets.QTableWidgetItem(
-                str(record.get("id", ""))
-            ))
-            # Label
-            self.table.setItem(row, 1, QtWidgets.QTableWidgetItem(
-                str(record.get("label", ""))
-            ))
-            # Points count
-            measurements = record.get("measurements", [])
-            self.table.setItem(row, 2, QtWidgets.QTableWidgetItem(
-                str(len(measurements))
-            ))
-            # Timestamp
-            ts = record.get("timestamp", "")
-            if ts:
-                try:
-                    dt = datetime.datetime.fromisoformat(ts)
-                    ts = dt.strftime("%Y-%m-%d %H:%M")
-                except Exception:
-                    pass
-            self.table.setItem(row, 3, QtWidgets.QTableWidgetItem(str(ts)))
+
+        # Different display for tested antennas
+        if self._record_type == "tested":
+            for record in self._records:
+                row = self.table.rowCount()
+                self.table.insertRow(row)
+
+                # ID
+                self.table.setItem(row, 0, QtWidgets.QTableWidgetItem(
+                    str(record.get("id", ""))
+                ))
+                # Label
+                self.table.setItem(row, 1, QtWidgets.QTableWidgetItem(
+                    str(record.get("label", ""))
+                ))
+
+                # S11 data
+                s11_data = record.get("s11_data", {})
+                if s11_data and isinstance(s11_data, dict):
+                    worst_s11 = s11_data.get("worst_s11_db")
+                    if worst_s11 is not None:
+                        s11_text = f"{worst_s11:.2f}"
+                    else:
+                        s11_text = "-"
+                else:
+                    s11_text = "-"
+                self.table.setItem(row, 2, QtWidgets.QTableWidgetItem(s11_text))
+
+                # VSWR
+                if s11_data and isinstance(s11_data, dict):
+                    vswr = s11_data.get("vswr")
+                    if vswr is not None and vswr != float('inf'):
+                        vswr_text = f"{vswr:.2f}"
+                    else:
+                        vswr_text = "-"
+                else:
+                    vswr_text = "-"
+                self.table.setItem(row, 3, QtWidgets.QTableWidgetItem(vswr_text))
+
+                # Gain data - calculate from measurements
+                gain_data = record.get("gain_data", {})
+                if gain_data and isinstance(gain_data, dict):
+                    points = gain_data.get("points", [])
+                    if points:
+                        powers = [float(p.get("power_dbm", -100)) for p in points if isinstance(p, dict)]
+                        if powers:
+                            # Use max power as gain proxy
+                            max_gain = max(powers)
+                            gain_text = f"{max_gain:.2f}"
+                        else:
+                            gain_text = "-"
+                    else:
+                        gain_text = "-"
+                else:
+                    gain_text = "-"
+                self.table.setItem(row, 4, QtWidgets.QTableWidgetItem(gain_text))
+
+                # Offset (from golden sample - would need comparison)
+                offset_text = "-"
+                self.table.setItem(row, 5, QtWidgets.QTableWidgetItem(offset_text))
+
+                # Status
+                s11_pass = record.get("s11_pass")
+                gain_pass = record.get("gain_pass")
+                overall_pass = record.get("overall_pass")
+                fail_reason = record.get("fail_reason", "")
+
+                if overall_pass is True:
+                    status_text = "PASS"
+                elif s11_pass is False:
+                    status_text = f"FAIL (S11)"
+                elif gain_pass is False:
+                    status_text = f"FAIL (Gain)"
+                else:
+                    status_text = "-"
+
+                status_item = QtWidgets.QTableWidgetItem(status_text)
+                if "FAIL" in status_text:
+                    status_item.setForeground(QtGui.QColor("#c1121f"))
+                elif "PASS" in status_text:
+                    status_item.setForeground(QtGui.QColor("#0a7f2e"))
+                self.table.setItem(row, 6, status_item)
+
+                # Timestamp
+                ts = record.get("timestamp", "")
+                if ts:
+                    try:
+                        dt = datetime.datetime.fromisoformat(ts)
+                        ts = dt.strftime("%Y-%m-%d %H:%M")
+                    except Exception:
+                        pass
+                self.table.setItem(row, 7, QtWidgets.QTableWidgetItem(str(ts)))
+        else:
+            # Standard display for reference and golden samples
+            for record in self._records:
+                row = self.table.rowCount()
+                self.table.insertRow(row)
+
+                # ID
+                self.table.setItem(row, 0, QtWidgets.QTableWidgetItem(
+                    str(record.get("id", ""))
+                ))
+                # Label
+                self.table.setItem(row, 1, QtWidgets.QTableWidgetItem(
+                    str(record.get("label", ""))
+                ))
+                # Points count
+                s11_data = record.get("s11_data", {})
+                if isinstance(s11_data, dict) and s11_data.get("frequencies"):
+                    pts = len(s11_data.get("frequencies", []))
+                else:
+                    pts = len(record.get("measurements", []))
+                self.table.setItem(row, 2, QtWidgets.QTableWidgetItem(str(pts)))
+                # Timestamp
+                ts = record.get("timestamp", "")
+                if ts:
+                    try:
+                        dt = datetime.datetime.fromisoformat(ts)
+                        ts = dt.strftime("%Y-%m-%d %H:%M")
+                    except Exception:
+                        pass
+                self.table.setItem(row, 3, QtWidgets.QTableWidgetItem(str(ts)))
     
     def add_record(self, record: Dict):
         """Add a record programmatically."""
@@ -360,83 +468,249 @@ class AntennaTableWidget(QtWidgets.QWidget):
 
 class GainMeasureTab(QtWidgets.QWidget):
     """Gain measurement results tab with three-column layout."""
-    
+
     # Signal emitted when a record is selected for plotting
     plot_requested = Signal(dict)  # Emits record with gain data
-    
+
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
         super().__init__(parent)
-        self._selected_reference: Optional[Dict] = None
+        self._antenna_counter = 0
+        self._config_key = "antenna_test_tab"
+        self._selected_golden_record: Optional[Dict] = None
+        self._selected_tested_record: Optional[Dict] = None
+        self._display_mode = "golden"  # "golden", "tested", or "both"
+        self._lock_display_mode = False  # When True, radio buttons are disabled
+        self._auto_mode = True  # Tracks whether current mode was auto-set
         self._setup_ui()
-    
+
     def _setup_ui(self):
         """Setup the gain measure tab UI."""
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
-        
-        # Three-column layout
-        columns_layout = QtWidgets.QHBoxLayout()
-        
-        # Left: Reference antenna measurements
-        self.reference_table = AntennaTableWidget(
-            "Reference Antenna", 
-            record_type="reference",
-            parent=self
-        )
-        self.reference_table.record_selected.connect(self._on_reference_selected)
-        columns_layout.addWidget(self.reference_table, 1)
-        
-        # Middle: Golden samples (antennas meeting threshold)
+
+        # Two-column layout using splitter for adjustable widths
+        self.splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+
+        # Left: Golden samples (captured by pressing "Measure Golden Sample")
         self.golden_table = AntennaTableWidget(
             "Golden Samples",
             record_type="golden",
             parent=self
         )
         self.golden_table.record_selected.connect(self._on_golden_selected)
-        columns_layout.addWidget(self.golden_table, 1)
-        
-        # Right: Tested antennas (excluding golden samples)
+        self.splitter.addWidget(self.golden_table)
+
+        # Right: Tested Antennas (with subcolumns for LibreVNA S11 and tinySA Gain)
         self.tested_table = AntennaTableWidget(
             "Tested Antennas",
             record_type="tested",
             parent=self
         )
         self.tested_table.record_selected.connect(self._on_tested_selected)
-        columns_layout.addWidget(self.tested_table, 1)
-        
-        layout.addLayout(columns_layout)
+        self.splitter.addWidget(self.tested_table)
+
+        # Set stretch factors for equal initial size
+        self.splitter.setStretchFactor(0, 1)
+        self.splitter.setStretchFactor(1, 1)
+
+        # Display mode selection
+        mode_layout = QtWidgets.QHBoxLayout()
+        mode_label = QtWidgets.QLabel("Display:")
+        mode_label.setStyleSheet("font-weight: bold;")
+        mode_layout.addWidget(mode_label)
+
+        self.golden_radio = QtWidgets.QRadioButton("Golden Reference Only")
+        self.golden_radio.setChecked(True)
+        self.golden_radio.toggled.connect(self._on_display_mode_changed)
+        mode_layout.addWidget(self.golden_radio)
+
+        self.tested_radio = QtWidgets.QRadioButton("Test Antenna Only")
+        self.tested_radio.toggled.connect(self._on_display_mode_changed)
+        mode_layout.addWidget(self.tested_radio)
+
+        self.both_radio = QtWidgets.QRadioButton("Show Both")
+        self.both_radio.toggled.connect(self._on_display_mode_changed)
+        mode_layout.addWidget(self.both_radio)
+
+        mode_layout.addStretch()
+        layout.addLayout(mode_layout)
+
+        layout.addWidget(self.splitter)
+
+    def save_state(self, store) -> dict:
+        """Save splitter state to config."""
+        widths = self.splitter.sizes()
+        # Check if store is a QSettings object (has setValue method)
+        if hasattr(store, 'setValue'):
+            store.setValue(f"{self._config_key}/splitter_widths", widths)
+        return {"splitter_widths": widths}
+
+    def restore_state(self, store):
+        """Restore splitter state from config.
+
+        Args:
+            store: Either a QSettings object or a dict from session data
+        """
+        # Check if store is a QSettings object or a dict
+        if isinstance(store, dict):
+            widths = store.get("splitter_widths")
+        else:
+            widths = store.value(f"{self._config_key}/splitter_widths")
+
+        if widths and isinstance(widths, (list, tuple)) and len(widths) == 2:
+            self.splitter.setSizes([int(w) for w in widths])
     
-    def _on_reference_selected(self, record: Dict):
-        """Handle reference antenna selection."""
-        self._selected_reference = record
-        self._emit_plot_data(record, "Reference")
-    
+    def _update_radio_enabled_state(self):
+        """Enable/disable radio buttons based on selection state."""
+        has_golden = self._selected_golden_record is not None
+        has_tested = self._selected_tested_record is not None
+
+        if has_golden and has_tested:
+            # Both selected - unlock all radios
+            self._lock_display_mode = False
+            self.golden_radio.setEnabled(True)
+            self.tested_radio.setEnabled(True)
+            self.both_radio.setEnabled(True)
+        elif has_golden and not has_tested:
+            # Only golden - lock to golden only
+            self._lock_display_mode = True
+            self.golden_radio.setEnabled(True)
+            self.tested_radio.setEnabled(False)
+            self.both_radio.setEnabled(False)
+            self.golden_radio.setChecked(True)
+            self._display_mode = "golden"
+        elif has_tested and not has_golden:
+            # Only tested - lock to tested only
+            self._lock_display_mode = True
+            self.golden_radio.setEnabled(False)
+            self.tested_radio.setEnabled(True)
+            self.both_radio.setEnabled(False)
+            self.tested_radio.setChecked(True)
+            self._display_mode = "tested"
+        else:
+            # Nothing selected - unlock all
+            self._lock_display_mode = False
+            self.golden_radio.setEnabled(True)
+            self.tested_radio.setEnabled(True)
+            self.both_radio.setEnabled(True)
+
     def _on_golden_selected(self, record: Dict):
         """Handle golden sample selection."""
-        self._emit_plot_data(record, "Golden")
-    
+        self._selected_golden_record = record
+        self._update_radio_enabled_state()
+        self._update_plot_display()
+
     def _on_tested_selected(self, record: Dict):
         """Handle tested antenna selection."""
-        self._emit_plot_data(record, "Tested")
-    
+        self._selected_tested_record = record
+        self._update_radio_enabled_state()
+        self._update_plot_display()
+
+    def _on_display_mode_changed(self):
+        """Handle display mode radio button change."""
+        if self._lock_display_mode:
+            # Revert to the locked selection if user tried to change
+            self._update_radio_enabled_state()
+            return
+
+        if self.golden_radio.isChecked():
+            self._display_mode = "golden"
+        elif self.tested_radio.isChecked():
+            self._display_mode = "tested"
+        elif self.both_radio.isChecked():
+            self._display_mode = "both"
+        self._update_plot_display()
+
+    @staticmethod
+    def _record_measurement_type(record: Dict) -> str:
+        """Determine the measurement type of a record.
+
+        Returns:
+            "gain_only": Only tinySA gain measurements present
+            "sparam_only": Only LibreVNA S-parameters present
+            "both": Both gain and S-parameters present
+            "none": No recognized measurement data
+        """
+        if not record:
+            return "none"
+
+        measurements = record.get("measurements", [])
+        gain_data = record.get("gain_data", {})
+        s11_data = record.get("s11_data", {})
+
+        has_gain = bool(measurements or (isinstance(gain_data, dict) and gain_data.get("points")))
+        has_s11 = bool(
+            isinstance(s11_data, dict)
+            and s11_data.get("magnitudes")
+        )
+
+        if has_gain and has_s11:
+            return "both"
+        elif has_gain:
+            return "gain_only"
+        elif has_s11:
+            return "sparam_only"
+        return "none"
+
+    def _update_plot_display(self):
+        """Emit plot data based on current display mode and selections."""
+        if self._display_mode == "golden" and self._selected_golden_record:
+            self._emit_plot_data(self._selected_golden_record, "golden")
+        elif self._display_mode == "tested" and self._selected_tested_record:
+            self._emit_plot_data(self._selected_tested_record, "tested")
+        elif self._display_mode == "both":
+            golden = self._selected_golden_record
+            tested = self._selected_tested_record
+            if golden or tested:
+                self._emit_comparison_plot(golden, tested)
+
+    def _emit_comparison_plot(self, golden: Optional[Dict], tested: Optional[Dict]):
+        """Emit comparison plot data for golden vs tested."""
+        # Determine measurement type for layout
+        golden_type = self._record_measurement_type(golden) if golden else "none"
+        tested_type = self._record_measurement_type(tested) if tested else "none"
+
+        # Overall type: use the richer type available
+        combined_types = {golden_type, tested_type}
+        if "both" in combined_types:
+            meas_type = "both"
+        elif "gain_only" in combined_types and "sparam_only" in combined_types:
+            meas_type = "both"
+        elif "gain_only" in combined_types:
+            meas_type = "gain_only"
+        elif "sparam_only" in combined_types:
+            meas_type = "sparam_only"
+        else:
+            meas_type = "none"
+
+        plot_data = {
+            "mode": "comparison",
+            "meas_type": meas_type,
+            "golden": golden,
+            "tested": tested,
+            "golden_label": golden.get("label", "Golden") if golden else "None",
+            "tested_label": tested.get("label", "Tested") if tested else "None",
+        }
+        self.plot_requested.emit(plot_data)
+
     def _emit_plot_data(self, record: Dict, source: str):
         """Emit plot data for the selected record."""
+        meas_type = self._record_measurement_type(record)
         plot_data = {
+            "mode": "single",
             "source": source,
+            "meas_type": meas_type,
             "record": record,
             "label": record.get("label", "Unknown"),
             "measurements": record.get("measurements", []),
-            "gain_data": record.get("gain_data", []),  # Calculated gain
+            "gain_data": record.get("gain_data", []),
+            "s11_data": record.get("s11_data", {}),
         }
         self.plot_requested.emit(plot_data)
     
-    def get_selected_reference(self) -> Optional[Dict]:
-        """Get the currently selected reference antenna."""
-        return self._selected_reference
-    
-    def add_reference_measurement(self, record: Dict):
-        """Add a reference antenna measurement."""
-        self.reference_table.add_record(record)
+    def add_golden_sample(self, record: Dict):
+        """Add a golden sample measurement."""
+        self.golden_table.add_record(record)
     
     def add_tested_measurement(self, record: Dict, is_golden: bool = False):
         """Add a tested antenna measurement."""
@@ -493,7 +767,23 @@ class GainMeasureTab(QtWidgets.QWidget):
     
     def clear_all(self):
         """Clear all tables."""
-        self.reference_table.clear_records()
         self.golden_table.clear_records()
         self.tested_table.clear_records()
-        self._selected_reference = None
+        self._antenna_counter = 0
+
+    def get_next_antenna_label(self) -> str:
+        """Get the next antenna label for testing."""
+        self._antenna_counter += 1
+        return f"Antenna_{self._antenna_counter:03d}"
+
+    def get_display_mode(self) -> str:
+        """Get current display mode."""
+        return self._display_mode
+
+    def get_selected_golden(self) -> Optional[Dict]:
+        """Get currently selected golden record."""
+        return self._selected_golden_record
+
+    def get_selected_tested(self) -> Optional[Dict]:
+        """Get currently selected tested record."""
+        return self._selected_tested_record

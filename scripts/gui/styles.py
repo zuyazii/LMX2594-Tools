@@ -14,6 +14,7 @@ COLORS = {
     "text_dim": "#808080",
     "accent": "#0078d4",
     "accent_hover": "#1a86d9",
+    "accent2": "#4ec9b0",  # Secondary color for comparison plots
     "success": "#4ec9b0",
     "error": "#f14c4c",
     "warning": "#cca700",
