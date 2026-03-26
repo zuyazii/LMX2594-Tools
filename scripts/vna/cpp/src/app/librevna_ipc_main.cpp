@@ -94,6 +94,30 @@ json devices_to_json(const std::vector<LibreVNAHeadless::DeviceInfo> &devices, b
     return payload;
 }
 
+json cal_acquisition_to_json(const LibreVNAHeadless::CalAcquisitionResult &r) {
+    json j;
+    j["success"] = r.success;
+    j["error"] = r.error.toStdString();
+    j["standard"] = r.standard.toStdString();
+    j["port1"] = r.port1;
+    j["port2"] = r.port2;
+    j["trace"] = r.trace;
+    return j;
+}
+
+json cal_result_to_json(const LibreVNAHeadless::CalibrationResult &r) {
+    json j;
+    j["success"] = r.success;
+    j["error"] = r.error.toStdString();
+    j["cal_file"] = r.cal_file.toStdString();
+    j["open_done"] = r.open_done;
+    j["short_done"] = r.short_done;
+    j["load_done"] = r.load_done;
+    j["through_done"] = r.through_done;
+    j["message"] = r.message.toStdString();
+    return j;
+}
+
 class IpcServer : public QObject {
     Q_OBJECT
 public:
@@ -209,6 +233,67 @@ private:
                 socket->flush();
                 QCoreApplication::quit();
                 return;
+            } else if (cmd == "cal_acquire") {
+                // Single standard acquisition (Open/Short/Load/Through)
+                LibreVNAHeadless::SweepRequest sweep;
+                sweep.f_start_hz = request.value("f_start_hz", 0.0);
+                sweep.f_stop_hz = request.value("f_stop_hz", 0.0);
+                sweep.points = request.value("points", 0);
+                sweep.ifbw_hz = request.value("ifbw_hz", 0.0);
+                sweep.power_dbm = request.value("power_dbm", 0.0);
+                sweep.timeout_ms = request.value("timeout_ms", 30000.0);
+                sweep.serial = QString::fromStdString(request.value("serial", ""));
+                if (request.contains("excited_ports") && request["excited_ports"].is_array()) {
+                    for (const auto &item : request["excited_ports"]) {
+                        sweep.excited_ports.push_back(item.get<int>());
+                    }
+                }
+                const QString standard = QString::fromStdString(request.value("standard", "open"));
+                const int port1 = request.value("port1", 1);
+                const int port2 = request.value("port2", 2);
+                if (debug_enabled()) {
+                    log_line(QStringLiteral("cal_acquire standard=%1 port1=%2 port2=%3").arg(standard).arg(port1).arg(port2));
+                }
+                const auto result = LibreVNAHeadless::acquire_cal_standard(standard, port1, port2, sweep);
+                response["ok"] = true;
+                response["result"] = cal_acquisition_to_json(result);
+                if (debug_enabled()) {
+                    log_line(QStringLiteral("cal_acquire done success=%1").arg(result.success ? "true" : "false"));
+                }
+            } else if (cmd == "run_calibration") {
+                // Full SOLT/OSL calibration with compute + save
+                QElapsedTimer timer;
+                timer.start();
+                LibreVNAHeadless::CalibrationRequest cal_req;
+                cal_req.type = QString::fromStdString(request.value("type", "SOLT"));
+                cal_req.f_start_hz = request.value("f_start_hz", 0.0);
+                cal_req.f_stop_hz = request.value("f_stop_hz", 0.0);
+                cal_req.points = request.value("points", 0);
+                cal_req.ifbw_hz = request.value("ifbw_hz", 0.0);
+                cal_req.power_dbm = request.value("power_dbm", 0.0);
+                cal_req.timeout_ms = request.value("timeout_ms", 30000.0);
+                cal_req.output_path = QString::fromStdString(request.value("output_path", ""));
+                cal_req.serial = QString::fromStdString(request.value("serial", ""));
+                if (request.contains("ports") && request["ports"].is_array()) {
+                    for (const auto &item : request["ports"]) {
+                        cal_req.ports.push_back(item.get<int>());
+                    }
+                }
+                if (debug_enabled()) {
+                    log_line(QStringLiteral("run_calibration type=%1 f_start=%2 f_stop=%3 points=%4 output=%5")
+                                 .arg(cal_req.type)
+                                 .arg(cal_req.f_start_hz, 0, 'f', 0)
+                                 .arg(cal_req.f_stop_hz, 0, 'f', 0)
+                                 .arg(cal_req.points)
+                                 .arg(cal_req.output_path));
+                }
+                const auto result = LibreVNAHeadless::run_calibration(cal_req);
+                response["ok"] = true;
+                response["result"] = cal_result_to_json(result);
+                if (debug_enabled()) {
+                    log_line(QStringLiteral("run_calibration done success=%1 (%2 ms)")
+                                 .arg(result.success ? "true" : "false").arg(timer.elapsed()));
+                }
             } else {
                 throw std::runtime_error("unknown cmd");
             }

@@ -23,6 +23,142 @@ except ImportError:
     Signal = QtCore.pyqtSignal
 
 
+def format_tested_worst_summary(record: Dict) -> str:
+    """One-line worst deviation for tested-antenna table."""
+    fr = record.get("failure_report") or {}
+    if fr.get("error") == "no_s11_data":
+        return "No S11 data"
+    parts: List[str] = []
+    st = fr.get("s11_threshold")
+    if isinstance(st, dict) and st.get("worst"):
+        w = st["worst"]
+        parts.append(
+            f"S11 max +{float(w.get('excess_db', 0)):.1f} dB @ {float(w.get('frequency_hz', 0)) / 1e6:.0f} MHz"
+        )
+    tol = fr.get("s11_tolerance")
+    if isinstance(tol, dict) and tol.get("worst"):
+        w = tol["worst"]
+        parts.append(
+            f"S11 Δ{float(w.get('delta_db', 0)):.1f} dB @ {float(w.get('frequency_mhz', 0)):.0f} MHz"
+        )
+    g = fr.get("gain_tolerance")
+    if isinstance(g, dict) and g.get("worst"):
+        w = g["worst"]
+        parts.append(
+            f"Gain Δ{float(w.get('delta_db', 0)):.1f} dB @ {float(w.get('frequency_mhz', 0)):.0f} MHz"
+        )
+    return "; ".join(parts) if parts else "-"
+
+
+class AntennaFailureReportDialog(QtWidgets.QDialog):
+    """Table of all failed points with copy to clipboard."""
+
+    def __init__(self, parent: Optional[QtWidgets.QWidget], record: Dict):
+        super().__init__(parent)
+        self._record = record
+        self.setWindowTitle(f"Failure details — {record.get('label', '')}")
+        self.resize(780, 460)
+        layout = QtWidgets.QVBoxLayout(self)
+
+        self._table = QtWidgets.QTableWidget(0, 6)
+        self._table.setHorizontalHeaderLabels(
+            ["Category", "F (MHz)", "Measured", "Reference / limit", "|Δ| / excess", "Notes"]
+        )
+        self._table.horizontalHeader().setStretchLastSection(True)
+
+        fr = record.get("failure_report") or {}
+        rows: List[tuple] = []
+        if fr.get("error") == "no_s11_data":
+            rows.append(("S11 data", "", "", "", "", "No S11 trace received"))
+        st = fr.get("s11_threshold")
+        if isinstance(st, dict):
+            for p in st.get("failed_points") or []:
+                rows.append(
+                    (
+                        "S11 vs max",
+                        f"{float(p.get('frequency_mhz', 0)):.3f}",
+                        f"{float(p.get('s11_db', 0)):.2f} dB",
+                        f"< {float(st.get('limit_db', 0)):.2f} dB",
+                        f"+{float(p.get('excess_db', 0)):.2f} dB",
+                        "above threshold",
+                    )
+                )
+        tol = fr.get("s11_tolerance")
+        if isinstance(tol, dict):
+            tdb = float(tol.get("tolerance_db", 0))
+            for p in tol.get("failed_points") or []:
+                rows.append(
+                    (
+                        "S11 vs golden",
+                        f"{float(p.get('frequency_mhz', 0)):.3f}",
+                        f"{float(p.get('measured_db', 0)):.2f} dB",
+                        f"{float(p.get('golden_db', 0)):.2f} dB (golden)",
+                        f"{float(p.get('delta_db', 0)):.2f} dB",
+                        f"limit ±{tdb:.2f} dB",
+                    )
+                )
+        g = fr.get("gain_tolerance")
+        if isinstance(g, dict):
+            gdb = float(g.get("tolerance_db", 0))
+            for p in g.get("failed_points") or []:
+                rows.append(
+                    (
+                        "Gain vs golden",
+                        f"{float(p.get('frequency_mhz', 0)):.3f}",
+                        f"{float(p.get('measured_dbm', 0)):.2f} dBm",
+                        f"{float(p.get('golden_dbm', 0)):.2f} dBm (golden)",
+                        f"{float(p.get('delta_db', 0)):.2f} dB",
+                        f"limit ±{gdb:.2f} dB",
+                    )
+                )
+        if not rows and record.get("fail_reason"):
+            rows.append(
+                ("Summary", "", "", "", "", str(record.get("fail_reason"))),
+            )
+
+        self._table.setRowCount(len(rows))
+        for r, row in enumerate(rows):
+            for c, val in enumerate(row):
+                self._table.setItem(r, c, QtWidgets.QTableWidgetItem(str(val)))
+        layout.addWidget(self._table)
+
+        btn_row = QtWidgets.QHBoxLayout()
+        copy_txt = QtWidgets.QPushButton("Copy as text")
+        copy_json = QtWidgets.QPushButton("Copy as JSON")
+        close_btn = QtWidgets.QPushButton("Close")
+        copy_txt.clicked.connect(self._copy_text)
+        copy_json.clicked.connect(self._copy_json)
+        close_btn.clicked.connect(self.accept)
+        btn_row.addWidget(copy_txt)
+        btn_row.addWidget(copy_json)
+        btn_row.addStretch()
+        btn_row.addWidget(close_btn)
+        layout.addLayout(btn_row)
+
+    def _copy_text(self) -> None:
+        hdr = []
+        for c in range(self._table.columnCount()):
+            it = self._table.horizontalHeaderItem(c)
+            hdr.append(it.text() if it else "")
+        lines = ["\t".join(hdr)]
+        for r in range(self._table.rowCount()):
+            cells = []
+            for c in range(self._table.columnCount()):
+                it = self._table.item(r, c)
+                cells.append(it.text() if it else "")
+            lines.append("\t".join(cells))
+        QtWidgets.QApplication.clipboard().setText("\n".join(lines))
+
+    def _copy_json(self) -> None:
+        payload = {
+            "label": self._record.get("label"),
+            "fail_reason": self._record.get("fail_reason"),
+            "failure_report": self._record.get("failure_report"),
+            "thresholds": self._record.get("thresholds"),
+        }
+        QtWidgets.QApplication.clipboard().setText(json.dumps(payload, indent=2))
+
+
 class AntennaRecordDialog(QtWidgets.QDialog):
     """Dialog for adding/editing antenna measurement records."""
     
@@ -206,9 +342,17 @@ class AntennaTableWidget(QtWidgets.QWidget):
         # Table - shows summary info
         # Different columns for tested antennas (shows S11 and Gain results)
         if self._record_type == "tested":
-            self.table = QtWidgets.QTableWidget(0, 8)
+            self.table = QtWidgets.QTableWidget(0, 9)
             self.table.setHorizontalHeaderLabels([
-                "ID", "Label", "S11 (dB)", "VSWR", "Gain (dB)", "Offset", "Status", "Timestamp"
+                "ID",
+                "Label",
+                "S11 (dB)",
+                "VSWR",
+                "Gain (dB)",
+                "Worst deviation",
+                "Status",
+                "Details",
+                "Timestamp",
             ])
         else:
             self.table = QtWidgets.QTableWidget(0, 4)
@@ -376,9 +520,10 @@ class AntennaTableWidget(QtWidgets.QWidget):
                     gain_text = "-"
                 self.table.setItem(row, 4, QtWidgets.QTableWidgetItem(gain_text))
 
-                # Offset (from golden sample - would need comparison)
-                offset_text = "-"
-                self.table.setItem(row, 5, QtWidgets.QTableWidgetItem(offset_text))
+                # Worst deviation summary (from failure_report when present)
+                self.table.setItem(
+                    row, 5, QtWidgets.QTableWidgetItem(format_tested_worst_summary(record))
+                )
 
                 # Status
                 s11_pass = record.get("s11_pass")
@@ -389,7 +534,15 @@ class AntennaTableWidget(QtWidgets.QWidget):
                 if overall_pass is True:
                     status_text = "PASS"
                 elif s11_pass is False:
-                    status_text = f"FAIL (S11)"
+                    fr = (fail_reason or "").lower()
+                    if "variation" in fr or "vs golden" in fr:
+                        status_text = "FAIL (S11 vs golden)"
+                    elif "threshold" in fr or "above" in fr:
+                        status_text = "FAIL (S11 max)"
+                    elif "no s11" in fr:
+                        status_text = "FAIL (S11 data)"
+                    else:
+                        status_text = "FAIL (S11)"
                 elif gain_pass is False:
                     status_text = f"FAIL (Gain)"
                 else:
@@ -402,6 +555,28 @@ class AntennaTableWidget(QtWidgets.QWidget):
                     status_item.setForeground(QtGui.QColor("#0a7f2e"))
                 self.table.setItem(row, 6, status_item)
 
+                # Fail details button
+                detail_wrap = QtWidgets.QWidget()
+                detail_layout = QtWidgets.QHBoxLayout(detail_wrap)
+                detail_layout.setContentsMargins(2, 2, 2, 2)
+                detail_btn = QtWidgets.QPushButton("View…")
+                fr = record.get("failure_report") or {}
+                has_rows = bool(
+                    fr.get("s11_threshold")
+                    or fr.get("s11_tolerance")
+                    or fr.get("gain_tolerance")
+                    or fr.get("error")
+                )
+                detail_btn.setEnabled(
+                    has_rows or (overall_pass is not True and bool(record.get("fail_reason")))
+                )
+                rec_copy = dict(record)
+                detail_btn.clicked.connect(
+                    lambda _=False, rc=rec_copy: AntennaFailureReportDialog(self, rc).exec()
+                )
+                detail_layout.addWidget(detail_btn)
+                self.table.setCellWidget(row, 7, detail_wrap)
+
                 # Timestamp
                 ts = record.get("timestamp", "")
                 if ts:
@@ -410,7 +585,7 @@ class AntennaTableWidget(QtWidgets.QWidget):
                         ts = dt.strftime("%Y-%m-%d %H:%M")
                     except Exception:
                         pass
-                self.table.setItem(row, 7, QtWidgets.QTableWidgetItem(str(ts)))
+                self.table.setItem(row, 8, QtWidgets.QTableWidgetItem(str(ts)))
         else:
             # Standard display for reference and golden samples
             for record in self._records:
@@ -425,13 +600,17 @@ class AntennaTableWidget(QtWidgets.QWidget):
                 self.table.setItem(row, 1, QtWidgets.QTableWidgetItem(
                     str(record.get("label", ""))
                 ))
-                # Points count
+                # Points count (merged golden = S11 + gain counts)
                 s11_data = record.get("s11_data", {})
-                if isinstance(s11_data, dict) and s11_data.get("frequencies"):
-                    pts = len(s11_data.get("frequencies", []))
+                n_s11 = len(s11_data.get("frequencies", [])) if isinstance(s11_data, dict) else 0
+                n_g = len(record.get("measurements", []))
+                if n_s11 and n_g:
+                    pts_text = f"{n_s11}+{n_g}"
+                elif n_s11:
+                    pts_text = str(n_s11)
                 else:
-                    pts = len(record.get("measurements", []))
-                self.table.setItem(row, 2, QtWidgets.QTableWidgetItem(str(pts)))
+                    pts_text = str(n_g)
+                self.table.setItem(row, 2, QtWidgets.QTableWidgetItem(pts_text))
                 # Timestamp
                 ts = record.get("timestamp", "")
                 if ts:

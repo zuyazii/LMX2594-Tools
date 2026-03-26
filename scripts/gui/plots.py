@@ -16,6 +16,90 @@ except ImportError:
 from gui.styles import COLORS
 
 
+def _prepare_s11_plot_arrays(
+    frequencies_hz: List[float],
+    magnitudes_db: List[float],
+    phases_deg: Optional[List[float]] = None,
+    *,
+    freq_merge_hz: float = 500.0,
+) -> tuple:
+    """Sort by frequency, merge near-duplicate freqs, drop closed-loop duplicate endpoint.
+
+    LibreVNA traces can be out of order, duplicated, or bookended; that produces
+    long chords across the plot. This keeps a single open polyline suitable for
+    ``connect='finite'``.
+    """
+    if not frequencies_hz or not magnitudes_db:
+        return (np.array([], dtype=float), np.array([], dtype=float), None)
+
+    f = np.asarray(frequencies_hz, dtype=float)
+    m = np.asarray(magnitudes_db, dtype=float)
+    ph: Optional[np.ndarray]
+    if phases_deg is not None and len(phases_deg) == len(frequencies_hz):
+        ph = np.asarray(phases_deg, dtype=float)
+    else:
+        ph = None
+
+    order = np.argsort(f)
+    f = f[order]
+    m = m[order]
+    if ph is not None:
+        ph = ph[order]
+
+    # Merge duplicate/near-duplicate frequencies (same bin vs anchor), not whole sweep steps
+    if f.size >= 1:
+        out_f: List[float] = []
+        out_m: List[float] = []
+        out_ph: List[float] = [] if ph is not None else []
+        start = 0
+        n = int(f.size)
+        while start < n:
+            anchor = float(f[start])
+            end = start + 1
+            while end < n and abs(float(f[end]) - anchor) <= freq_merge_hz:
+                end += 1
+            sl = slice(start, end)
+            out_f.append(float(np.mean(f[sl])))
+            out_m.append(float(np.mean(m[sl])))
+            if ph is not None:
+                out_ph.append(float(np.mean(ph[sl])))
+            start = end
+        f = np.asarray(out_f, dtype=float)
+        m = np.asarray(out_m, dtype=float)
+        if ph is not None:
+            ph = np.asarray(out_ph, dtype=float)
+
+    # Drop explicit closed contour (last ~= first)
+    if f.size > 2:
+        tol_f = max(1.0, float(f.max() - f.min()) * 1e-9)
+        if abs(f[0] - f[-1]) <= tol_f and abs(m[0] - m[-1]) < 1e-3:
+            f, m = f[:-1], m[:-1]
+            if ph is not None:
+                ph = ph[:-1]
+
+    return (f, m, ph)
+
+
+def _prepare_freq_value_polyline(x_values: List[float], y_values: List[float]) -> tuple:
+    """Sort by x and drop a trailing point that wraps to the start frequency (open sweep).
+
+    LibreVNA traces are sometimes returned out of order or with a duplicated start
+    frequency at the end; drawing in array order then draws a closing chord.
+    """
+    if not x_values or not y_values or len(x_values) != len(y_values):
+        return (np.array([], dtype=float), np.array([], dtype=float))
+    x = np.asarray(x_values, dtype=float)
+    y = np.asarray(y_values, dtype=float)
+    order = np.argsort(x)
+    x, y = x[order], y[order]
+    if x.size > 2:
+        span = max(float(x[-1] - x[0]), 1.0)
+        tol = max(1.0, span * 1e-9)
+        if abs(float(x[-1]) - float(x[0])) <= tol:
+            x, y = x[:-1], y[:-1]
+    return (x, y)
+
+
 class DynamicPlotWidget(QtWidgets.QWidget):
     """Dynamic plot that changes based on measurement type."""
     
@@ -23,6 +107,8 @@ class DynamicPlotWidget(QtWidgets.QWidget):
         super().__init__(parent)
         self._sparam_series: List[Dict[str, object]] = []
         self._spectrum_data: Dict[str, object] = {}  # Store spectrum plot data
+        self._comparison_series: List[Dict[str, object]] = []
+        self._comparison_proxies: List[pg.SignalProxy] = []
         self._mag_mouse_proxy = None
         self._phase_mouse_proxy = None
         self._single_mouse_proxy = None
@@ -125,6 +211,22 @@ class DynamicPlotWidget(QtWidgets.QWidget):
 
         layout.addWidget(self.comparison_container)
 
+        for attr, yu in (
+            ("golden_gain_plot", "dB"),
+            ("golden_phase_plot", "deg"),
+            ("golden_mag_plot", "dB"),
+            ("tested_gain_plot", "dB"),
+            ("tested_phase_plot", "deg"),
+            ("tested_mag_plot", "dB"),
+        ):
+            pw = getattr(self, attr)[1]
+            proxy = pg.SignalProxy(
+                pw.scene().sigMouseMoved,
+                rateLimit=60,
+                slot=(lambda evt, w=pw: self._on_comparison_mouse_moved(evt, w)),
+            )
+            self._comparison_proxies.append(proxy)
+
         self._mag_mouse_proxy = pg.SignalProxy(
             self.mag_plot_widget.scene().sigMouseMoved,
             rateLimit=60,
@@ -201,6 +303,7 @@ class DynamicPlotWidget(QtWidgets.QWidget):
             self.tested_mag_plot[1].clear()
         self._sparam_series = []
         self._spectrum_data = {}  # Clear spectrum data
+        self._comparison_series = []
     
     def plot_data(self, x_data, y_data, name="", color=None):
         """Plot data on the widget."""
@@ -216,19 +319,6 @@ class DynamicPlotWidget(QtWidgets.QWidget):
             "y": list(y_data),
             "name": name,
         }
-
-    @staticmethod
-    def _open_curve_points(points: list) -> tuple:
-        """Return (xs, ys) in original order, with duplicate last point removed to avoid closing the path."""
-        if not points:
-            return ([], [])
-        xs = [p[0] for p in points]
-        ys = [p[1] for p in points]
-        # If last point equals first (closed contour), drop last so no line from end back to start
-        if len(xs) > 1 and xs[0] == xs[-1] and ys[0] == ys[-1]:
-            xs = xs[:-1]
-            ys = ys[:-1]
-        return (xs, ys)
 
     def plot_sparameters(self, payload: dict):
         """Plot S-parameter magnitude and phase in two columns."""
@@ -247,7 +337,12 @@ class DynamicPlotWidget(QtWidgets.QWidget):
             pen = pg.mkPen(color=color, width=2)
 
             if param in show_mag and isinstance(mag.get(param), list) and mag.get(param):
-                xs, ys = self._open_curve_points(mag[param])
+                pts = mag[param]
+                fx = [float(p[0]) for p in pts]
+                fy = [float(p[1]) for p in pts]
+                xs_np, ys_np = _prepare_freq_value_polyline(fx, fy)
+                xs = xs_np.tolist()
+                ys = ys_np.tolist()
                 if xs:
                     self.mag_plot_widget.plot(
                         xs, ys, pen=pen, name=f"{param} (Mag)", connect="finite"
@@ -261,7 +356,12 @@ class DynamicPlotWidget(QtWidgets.QWidget):
                     })
 
             if param in show_phase and isinstance(phase.get(param), list) and phase.get(param):
-                xs, ys = self._open_curve_points(phase[param])
+                pts = phase[param]
+                fx = [float(p[0]) for p in pts]
+                fy = [float(p[1]) for p in pts]
+                xs_np, ys_np = _prepare_freq_value_polyline(fx, fy)
+                xs = xs_np.tolist()
+                ys = ys_np.tolist()
                 if xs:
                     self.phase_plot_widget.plot(
                         xs, ys, pen=pen, name=f"{param} (Phase)", connect="finite"
@@ -322,6 +422,7 @@ class DynamicPlotWidget(QtWidgets.QWidget):
         """
         self.set_mode("comparison")
         self.clear()
+        self._comparison_series = []
 
         # Show/hide individual plot containers based on meas_type
         if meas_type == "gain_only":
@@ -415,21 +516,13 @@ class DynamicPlotWidget(QtWidgets.QWidget):
                 y_data.append(float(value))
 
             if x_data:
-                x_arr = np.array(x_data, dtype=float)
-                y_arr = np.array(y_data, dtype=float)
-                
-                n = len(x_arr)
-                if n >= 2:
-                    # Create explicit segment connections: prevent first-to-last connection
-                    connect = np.ones(n, dtype=np.int8)
-                    connect[0] = 1   # first: connect to next only
-                    connect[-1] = 4  # last: connect to previous only
-                    if n > 2:
-                        connect[1:-1] = 2  # middle: connect to both
-                    gain_plot.plot(x_arr, y_arr, pen=pen, name=f"{source.capitalize()} Gain", connect=connect)
-                else:
-                    # Single point - no connection needed
-                    gain_plot.plot(x_arr, y_arr, pen=pen, name=f"{source.capitalize()} Gain", connect=np.array([0], dtype=np.int8))
+                x_arr, y_arr = _prepare_freq_value_polyline(x_data, y_data)
+                gain_plot.plot(
+                    x_arr, y_arr, pen=pen, name=f"{source.capitalize()} Gain", connect="finite"
+                )
+                self._register_comparison_series(
+                    gain_plot, f"{source.capitalize()} Gain", x_arr, y_arr, "GHz", "dB"
+                )
                 gain_plot.setLabel('left', 'Gain', units='dB')
                 gain_plot.setLabel('bottom', 'Frequency', units='GHz')
                 self._auto_range_plot(gain_plot)
@@ -445,50 +538,116 @@ class DynamicPlotWidget(QtWidgets.QWidget):
             phases = s11_data.get("phases", []) if isinstance(s11_data, dict) else []
 
             if frequencies and magnitudes:
-                x_arr = np.array([f / 1e9 for f in frequencies], dtype=float)
-                mag_arr = np.array(magnitudes, dtype=float)
-
-                # Debug logging
-                import sys
-                print(f"[PLOT DEBUG] {source} - freqs: {len(x_arr)}, first={x_arr[0]:.6f}, last={x_arr[-1]:.6f}", file=sys.stderr)
-                print(f"[PLOT DEBUG] {source} - mags: {len(mag_arr)}, first={mag_arr[0]:.2f}, last={mag_arr[-1]:.2f}", file=sys.stderr)
-
-                n = len(x_arr)
+                f_hz, mag_arr, ph_arr = _prepare_s11_plot_arrays(
+                    list(frequencies), list(magnitudes),
+                    list(phases) if phases and len(phases) == len(frequencies) else None,
+                )
+                x_arr = f_hz / 1e9
+                n = int(x_arr.size)
                 if n >= 2:
-                    # Create explicit segment connections: [1, 2, 2, ..., 2, 4]
-                    # 1 = connect to next only, 2 = connect to both, 4 = connect to previous only
-                    connect = np.ones(n, dtype=np.int8)
-                    connect[0] = 1   # first: connect to next only
-                    connect[-1] = 4  # last: connect to previous only
-                    if n > 2:
-                        connect[1:-1] = 2  # middle: connect to both
-                    
-                    # Magnitude
-                    mag_plot.plot(x_arr, mag_arr, pen=pen, name=f"{source.capitalize()} S11", connect=connect)
+                    mag_plot.plot(
+                        x_arr, mag_arr, pen=pen, name=f"{source.capitalize()} S11", connect="finite"
+                    )
                     mag_plot.setLabel('left', 'S11', units='dB')
                     mag_plot.setLabel('bottom', 'Frequency', units='GHz')
                     self._auto_range_plot(mag_plot)
-                    print(f"[PLOT DEBUG] {source} - plotted magnitude with explicit connect segments", file=sys.stderr)
+                    self._register_comparison_series(
+                        mag_plot, f"{source.capitalize()} S11", x_arr, mag_arr, "GHz", "dB"
+                    )
 
-                    # Phase
-                    if phases and len(phases) == n:
-                        phase_arr = np.array(phases, dtype=float)
-                        phase_plot.plot(x_arr, phase_arr, pen=pen, name=f"{source.capitalize()} Phase", connect=connect)
+                    if ph_arr is not None and ph_arr.size == n:
+                        phase_plot.plot(
+                            x_arr, ph_arr, pen=pen, name=f"{source.capitalize()} Phase", connect="finite"
+                        )
                         phase_plot.setLabel('left', 'Phase', units='deg')
                         phase_plot.setLabel('bottom', 'Frequency', units='GHz')
                         self._auto_range_plot(phase_plot)
-                        print(f"[PLOT DEBUG] {source} - plotted phase with explicit connect segments", file=sys.stderr)
+                        self._register_comparison_series(
+                            phase_plot, f"{source.capitalize()} Phase", x_arr, ph_arr, "GHz", "deg"
+                        )
                     else:
                         phase_plot.getViewBox().parent().parent().hide()
                 else:
-                    # Not enough points to plot
-                    print(f"[PLOT DEBUG] {source} - not enough points ({n}) to plot", file=sys.stderr)
                     mag_plot.getViewBox().parent().parent().hide()
                     phase_plot.getViewBox().parent().parent().hide()
             else:
                 # Hide both S11 containers if no S11 data
                 phase_plot.getViewBox().parent().parent().hide()
                 mag_plot.getViewBox().parent().parent().hide()
+
+    def _register_comparison_series(
+        self,
+        plot_widget: pg.PlotWidget,
+        name: str,
+        x_arr: np.ndarray,
+        y_arr: np.ndarray,
+        x_axis: str,
+        y_unit: str,
+    ) -> None:
+        if x_arr is None or y_arr is None or x_arr.size == 0:
+            return
+        self._comparison_series.append(
+            {
+                "plot": plot_widget,
+                "name": name,
+                "x": np.asarray(x_arr, dtype=float),
+                "y": np.asarray(y_arr, dtype=float),
+                "x_axis": x_axis,
+                "y_unit": y_unit,
+            }
+        )
+
+    def _on_comparison_mouse_moved(self, evt, plot_widget: pg.PlotWidget) -> None:
+        if self._current_mode != "comparison":
+            return
+        pos = evt[0] if isinstance(evt, (list, tuple)) and evt else evt
+        if pos is None or not plot_widget.sceneBoundingRect().contains(pos):
+            return
+        info = self._nearest_comparison_point(pos, plot_widget)
+        if not info:
+            return
+        xu = info.get("x_unit", "GHz")
+        yu = info.get("y_unit", "")
+        if xu == "GHz":
+            fx = f"f={info['x']:.6f} GHz"
+        else:
+            fx = f"f={info['x']:.3f} Hz"
+        QtWidgets.QToolTip.showText(
+            QtGui.QCursor.pos(),
+            f"{info['name']} | {fx} | y={info['y']:.2f} {yu}",
+            self,
+        )
+
+    def _nearest_comparison_point(self, scene_pos, plot_widget: pg.PlotWidget):
+        if scene_pos is None:
+            return None
+        vb = plot_widget.getPlotItem().vb
+        nearest = None
+        nearest_d2 = None
+        for series in self._comparison_series:
+            if series.get("plot") is not plot_widget:
+                continue
+            xs = series.get("x", np.array([]))
+            ys = series.get("y", np.array([]))
+            for idx in range(int(xs.size)):
+                view_pt = QtCore.QPointF(float(xs[idx]), float(ys[idx]))
+                scene_pt = vb.mapViewToScene(view_pt)
+                px = float(scene_pt.x()) - float(scene_pos.x())
+                py = float(scene_pt.y()) - float(scene_pos.y())
+                d2 = px * px + py * py
+                if nearest_d2 is None or d2 < nearest_d2:
+                    nearest_d2 = d2
+                    nearest = {
+                        "name": str(series.get("name", "")),
+                        "index": idx,
+                        "x": float(xs[idx]),
+                        "y": float(ys[idx]),
+                        "x_unit": str(series.get("x_axis", "GHz")),
+                        "y_unit": str(series.get("y_unit", "")),
+                    }
+        if nearest is None or nearest_d2 is None or nearest_d2 > (30.0 * 30.0):
+            return None
+        return nearest
 
     def _on_mag_mouse_moved(self, evt):
         self._show_hover_info(evt, "mag")
