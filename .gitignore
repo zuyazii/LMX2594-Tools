@@ -17,7 +17,9 @@ output/
 .lmx_gui_config.json
 
 # Documents
-docs/
+# (excluding docs/packing-guide.md which is committed)
+docs/*
+!docs/packing-guide.md
 
 # Build directories
 scripts/vna/cpp/bin
@@ -26,6 +28,7 @@ scripts/vna/cpp/build
 scripts/vna/cpp/prebuilt
 dist/
 scripts/vna/cpp/build-release/
+build/
 
 # Temporary log files
 *.log

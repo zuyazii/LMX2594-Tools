@@ -49,17 +49,30 @@ Python dependencies:
 VNA (LibreVNA IPC/CLI) build dependencies (`scripts/vna/cpp`):
 
 - CMake `3.20+`
-- C++17 toolchain (`MSVC x64` recommended; `MinGW64` supported)
+- C++17 toolchain (`MSVC x64` recommended; `MinGW-w64` supported)
 - Qt 6.x modules: `Core`, `Widgets`, `Network`, `Gui`, `Svg`, `OpenGL`
 - `libusb-1.0` (headers + library + runtime DLL)
 
-Windows build prerequisites for VNA tools:
+Windows build prerequisites for VNA tools (option A – MSYS2):
+
+- Install MSYS2, then: `pacman -S mingw-w64-ucrt-x86_64-qt6-base mingw-w64-ucrt-x86_64-libusb ninja cmake`
+- CMake automatically detects `C:/msys64/ucrt64/lib/cmake/Qt6`
+
+Windows build prerequisites for VNA tools (option B – official Qt):
 
 - Visual Studio Build Tools with "Desktop development with C++"
 - Qt 6 MSVC kit matching your compiler (set `Qt6_DIR`)
 - `libusb` (for example via `vcpkg install libusb:x64-windows`)
 
-Example VNA configure/build:
+Example VNA configure/build (MSYS2):
+
+```powershell
+$env:PATH = "C:\msys64\ucrt64\bin;" + $env:PATH
+cmake -S scripts\vna\cpp -B scripts\vna\cpp\build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build scripts\vna\cpp\build --target librevna-ipc
+```
+
+Example VNA configure/build (official Qt):
 
 ```powershell
 cmake -S scripts\vna\cpp -B scripts\vna\cpp\build -G Ninja `
@@ -114,9 +127,63 @@ python scripts/tinysa_antenna_test.py golden --start-freq 3.4GHz --stop-freq 3.6
 - "No USB2ANY controllers found": check USB2ANY drivers/cable and SPI wiring.
 - tinySA timeouts: confirm `CONFIG -> Connection -> USB`, then replug the device.
 
+## Build & Package
+
+This project can be packaged into a self-contained distribution that runs on any Windows PC
+without needing to install Python.
+
+### Prerequisites
+
+1. **64-bit Python environment** for the GUI:
+   ```powershell
+   .venv-x64\Scripts\activate
+   ```
+2. **32-bit Python 3.10** environment for the USB2ANY worker (required to control USB hardware):
+   ```powershell
+   uv python install cpython-3.10.11-windows-x86-none
+   uv venv --python cpython-3.10.11-windows-x86-none .venv-x86
+   .venv-x86\Scripts\activate
+   pip install pyserial
+   ```
+
+### Build
+
+Run the build script from the repo root:
+
+```powershell
+python build.py
+```
+
+This produces `dist/LMX2594-Release/` containing everything needed to run the app.
+
+### Build Options
+
+```powershell
+python build.py --gui-only      # 仅构建 GUI 可执行文件
+python build.py --worker-only   # 仅构建 Worker 可执行文件
+python build.py --skip-vna      # 跳过 LibreVNA IPC 构建
+python build.py --clean         # 清理所有构建产物后重新构建
+```
+
+### Distribute
+
+Copy the entire `dist/LMX2594-Release/` folder to the target PC.
+Double-click `run_gui.bat` to launch the GUI — no Python installation required.
+
+The packaged `LMX2594-Calibration.exe` automatically discovers `lmx2594_worker.exe`
+in the same directory (no manual configuration needed).
+
 ## Files
 
 - `scripts/lmx2594_calibration_gui.py`: 64-bit GUI (tinySA + IPC to worker)
 - `scripts/lmx2594_worker.py`: 32-bit USB2ANY/LMX worker
 - `scripts/frequency_generator.py`: LMX2594 CLI generator
 - `scripts/tinysa_antenna_test.py`: tinySA CLI automation
+- `build.py`: 打包构建脚本
+- `build/lmx2594_gui.spec`: PyInstaller 配置（GUI）
+- `build/lmx2594_worker.spec`: PyInstaller 配置（Worker）
+- `docs/packing-guide.md`: 完整打包指南
+
+## PackingSee [docs/packing-guide.md](docs/packing-guide.md) for a full step-by-step guide
+on building standalone executables that can run on any Windows PC without
+installing Python.

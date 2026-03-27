@@ -837,7 +837,7 @@ CalibrationResult run_calibration(const CalibrationRequest &request)
     // Determine calibration type
     Calibration::Type cal_type;
     if (calType == "OSL") {
-        cal_type = Calibration::Type::OSL;
+        cal_type = Calibration::Type::SOLT;
     } else {
         cal_type = Calibration::Type::SOLT;
     }
@@ -854,7 +854,9 @@ CalibrationResult run_calibration(const CalibrationRequest &request)
     // Build CalType
     Calibration::CalType ct;
     ct.type = cal_type;
-    ct.usedPorts = static_cast<std::vector<unsigned int>>(ports);
+    ct.usedPorts.clear();
+    std::transform(ports.begin(), ports.end(), std::back_inserter(ct.usedPorts),
+                   [](int p) { return static_cast<unsigned int>(p); });
 
     // Add Open measurements (one per port)
     auto openSet = calibration.findMeasurements(CalibrationMeasurement::Base::Type::Open);

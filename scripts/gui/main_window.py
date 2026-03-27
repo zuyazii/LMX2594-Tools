@@ -20,6 +20,18 @@ parent_dir = os.path.dirname(script_dir)
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
+
+def _is_frozen_worker_exe(path: str) -> bool:
+    """True if path is a PyInstaller-built lmx2594_worker.exe (no -c / no script argv)."""
+    return os.path.basename(path).lower() == "lmx2594_worker.exe"
+
+
+def _worker_subprocess_argv(worker_python: str, worker_script: str) -> List[str]:
+    """Argv for lmx2594 worker: frozen exe alone, else python + script."""
+    if _is_frozen_worker_exe(worker_python):
+        return [worker_python]
+    return [worker_python, worker_script]
+
 MSYS2_UCRT64_BIN = os.environ.get("MSYS2_UCRT64_BIN", r"C:\msys64\ucrt64\bin")
 MSYS2_QT_PLUGIN_PATH = os.environ.get("MSYS2_QT_PLUGIN_PATH", r"C:\msys64\ucrt64\share\qt6\plugins")
 SYSTEM_ROOT = os.environ.get("SystemRoot", r"C:\Windows")
@@ -114,24 +126,29 @@ class SweepWorker(QtCore.QThread):
         def start(self):
             if self._proc and self._proc.poll() is None:
                 return
-            if not os.path.exists(self._worker_script):
+            frozen = _is_frozen_worker_exe(self._python_path)
+            if not frozen and not os.path.exists(self._worker_script):
                 raise RuntimeError(f"Worker script not found: {self._worker_script}")
+            if not os.path.exists(self._python_path):
+                raise RuntimeError(f"Worker interpreter not found: {self._python_path}")
 
-            try:
-                bits = subprocess.check_output(
-                    [self._python_path, "-c", "import struct;print(struct.calcsize('P')*8)"],
-                    text=True,
-                    timeout=5,
-                ).strip()
-            except Exception as exc:
-                raise RuntimeError(f"Failed to run worker Python: {exc}") from exc
-            if bits != "32":
-                raise RuntimeError(
-                    f"Worker Python must be 32-bit for USB2ANY (current: {bits}-bit): {self._python_path}"
-                )
+            if not frozen:
+                try:
+                    bits = subprocess.check_output(
+                        [self._python_path, "-c", "import struct;print(struct.calcsize('P')*8)"],
+                        text=True,
+                        timeout=5,
+                    ).strip()
+                except Exception as exc:
+                    raise RuntimeError(f"Failed to run worker Python: {exc}") from exc
+                if bits != "32":
+                    raise RuntimeError(
+                        f"Worker Python must be 32-bit for USB2ANY (current: {bits}-bit): {self._python_path}"
+                    )
 
+            argv = _worker_subprocess_argv(self._python_path, self._worker_script)
             self._proc = subprocess.Popen(
-                [self._python_path, self._worker_script],
+                argv,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -2736,16 +2753,15 @@ class CalibrationApp(QtWidgets.QMainWindow):
     def _poll_usb2any_status(self):
         """Quick poll of USB2ANY device availability."""
         worker_script = os.path.join(parent_dir, "lmx2594_worker.py")
-        if not os.path.exists(worker_script):
-            return
-
         try:
             worker_python = str(self._settings.get("worker_python", sys.executable))
             if not worker_python or not os.path.exists(worker_python):
                 return
+            if not _is_frozen_worker_exe(worker_python) and not os.path.exists(worker_script):
+                return
 
             result = subprocess.run(
-                [worker_python, worker_script],
+                _worker_subprocess_argv(worker_python, worker_script),
                 input=json.dumps({"cmd": "list_usb2any"}) + "\n",
                 text=True,
                 capture_output=True,
@@ -2778,6 +2794,9 @@ class CalibrationApp(QtWidgets.QMainWindow):
         """Return likely x86 worker python locations."""
         repo_root = os.path.dirname(parent_dir)
         return [
+            # PyInstaller bundle (see build.py: worker lives in lmx2594_worker/)
+            os.path.join(repo_root, "lmx2594_worker", "lmx2594_worker.exe"),
+            os.path.join(repo_root, "lmx2594_worker.exe"),
             os.path.join(repo_root, ".venv-x86", "Scripts", "python.exe"),
             os.path.join(repo_root, ".venv_x86", "Scripts", "python.exe"),
             os.path.join(repo_root, "venv-x86", "Scripts", "python.exe"),
@@ -2789,6 +2808,8 @@ class CalibrationApp(QtWidgets.QMainWindow):
         """Return interpreter bitness (32/64), or None on failure."""
         if not python_path or not os.path.exists(python_path):
             return None
+        if _is_frozen_worker_exe(python_path):
+            return 32
         try:
             out = subprocess.check_output(
                 [python_path, "-c", "import struct; print(struct.calcsize('P')*8)"],
@@ -2835,13 +2856,13 @@ class CalibrationApp(QtWidgets.QMainWindow):
     def _refresh_usb2any_devices(self):
         """Detect and populate USB2ANY devices."""
         worker_script = os.path.join(parent_dir, "lmx2594_worker.py")
-        if not os.path.exists(worker_script):
-            self.logs_tab.append_event("USB2ANY scan unavailable: lmx2594_worker.py missing")
-            return
-
         try:
             worker_python = self._resolve_worker_python_path(prefer_x86=True)
             self._settings["worker_python"] = worker_python
+            if not _is_frozen_worker_exe(worker_python) and not os.path.exists(worker_script):
+                self.logs_tab.append_event("USB2ANY scan unavailable: lmx2594_worker.py missing")
+                return
+
             bits = self._python_bitness(worker_python)
             if bits != 32:
                 self.logs_tab.append_event(
@@ -2849,7 +2870,7 @@ class CalibrationApp(QtWidgets.QMainWindow):
                 )
                 return
             result = subprocess.run(
-                [worker_python, worker_script],
+                _worker_subprocess_argv(worker_python, worker_script),
                 input=json.dumps({"cmd": "list_usb2any"}) + "\n",
                 text=True,
                 capture_output=True,

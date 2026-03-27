@@ -98,6 +98,20 @@ public:
     QString getValidDevice() const;
     bool validForDevice(QString serial) const;
 
+    // returns all measurements that match the paramaters
+    std::vector<CalibrationMeasurement::Base*> findMeasurements(CalibrationMeasurement::Base::Type type, int port1 = 0, int port2 = 0);
+    // returns the first measurement in the list that matches the parameters
+    CalibrationMeasurement::Base* findMeasurement(CalibrationMeasurement::Base::Type type, int port1 = 0, int port2 = 0);
+
+    enum class DefaultMeasurements {
+        SOL1Port,
+        SOLT2Port,
+        SOLT3Port,
+        SOLT4Port,
+        Last
+    };
+    void createDefaultMeasurements(DefaultMeasurements dm);
+
 public slots:
     // Call once all datapoints of the current span have been added
     void measurementsComplete();
@@ -119,22 +133,10 @@ signals:
     // emitted when the calibrationo coefficients were reset
     void deactivated();
 private:
-    enum class DefaultMeasurements {
-        SOL1Port,
-        SOLT2Port,
-        SOLT3Port,
-        SOLT4Port,
-        Last
-    };
     static QString DefaultMeasurementsToString(DefaultMeasurements dm);
-    void createDefaultMeasurements(DefaultMeasurements dm);
     void deleteMeasurements();
 
     bool hasFrequencyOverlap(std::vector<CalibrationMeasurement::Base*> m, double *startFreq = nullptr, double *stopFreq = nullptr, int *points = nullptr);
-    // returns all measurements that match the paramaters
-    std::vector<CalibrationMeasurement::Base*> findMeasurements(CalibrationMeasurement::Base::Type type, int port1 = 0, int port2 = 0);
-    // returns the first measurement in the list that matches the parameters
-    CalibrationMeasurement::Base* findMeasurement(CalibrationMeasurement::Base::Type type, int port1 = 0, int port2 = 0);
     CalibrationMeasurement::Base *newMeasurement(CalibrationMeasurement::Base::Type type);
 
     class Point {
