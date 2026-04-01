@@ -1,0 +1,73 @@
+======================================================================
+BENCHMARK REPORT - DUT Antenna Test
+======================================================================
+Test Label:      Antenna_20260330_143022
+Timestamp:        2026-03-30T14:30:45.123456
+----------------------------------------------------------------------
+1. BENCHMARKING AGAINST INDUSTRY STANDARDS
+----------------------------------------------------------------------
+  Dynamic Range:  ~96.5 dB (1.4-1.8 GHz target)
+    - Worst S11:  -12.00 dB
+    - Max Power:  -32.45 dBm (Pmax)
+  Sweeping Speed: ~1.2s for 201 points sweep
+  Precision:       S11 tolerance 2.00 dB (sub-dB tracking achievable)
+    - Avg ΔP:      0.045 dB
+    - Max ΔP:      0.092 dB
+  Versatility:    Validated @ 3.55 GHz center frequency
+    - Freq Range:  1400.00 - 1800.00 MHz
+  Stability:       0.0% packet loss across C++/Python IPC bridge
+    - Lost packets: 0/1000
+
+----------------------------------------------------------------------
+2. ESTABLISHING THE BASELINES
+----------------------------------------------------------------------
+  Environmental Baseline (Dark Scan):
+    - Noise Floor:   -85.3 dBm
+    - Threshold:     -80.0 dBm
+    - Status:        PASS (anechoic chamber not required)
+  RF Reference (Golden Sample):
+    - Golden Sample: Golden_20260329_100000
+    - S11:           ~-12.1 dB
+    - Pmax:          -32.45 dBm
+    - Purpose:       Mathematically cancel cable and room interference
+
+----------------------------------------------------------------------
+3. TEST RESULT SUMMARY
+----------------------------------------------------------------------
+  Overall Result: PASS
+  S11 Test:       PASS
+  Gain Test:      PASS
+
+----------------------------------------------------------------------
+4. S11 DETAILED DATA (first 10 points)
+----------------------------------------------------------------------
+    1.    1400.000 MHz  S11:   -10.23 dB  Phase:  -45.67 deg
+    2.    1402.000 MHz  S11:   -10.56 dB  Phase:  -46.12 deg
+    3.    1404.000 MHz  S11:   -10.89 dB  Phase:  -46.55 deg
+    4.    1406.000 MHz  S11:   -11.23 dB  Phase:  -46.98 deg
+    5.    1408.000 MHz  S11:   -11.56 dB  Phase:  -47.41 deg
+    6.    1410.000 MHz  S11:   -11.89 dB  Phase:  -47.83 deg
+    7.    1412.000 MHz  S11:   -12.00 dB  Phase:  -48.25 deg
+    8.    1414.000 MHz  S11:   -11.95 dB  Phase:  -48.67 deg
+    9.    1416.000 MHz  S11:   -11.78 dB  Phase:  -49.08 deg
+   10.    1418.000 MHz  S11:   -11.54 dB  Phase:  -49.49 deg
+
+----------------------------------------------------------------------
+5. GAIN DETAILED DATA (first 10 points)
+----------------------------------------------------------------------
+    1.    1400.000 MHz  Power:  -34.12 dBm
+    2.    1402.000 MHz  Power:  -34.08 dBm
+    3.    1404.000 MHz  Power:  -34.05 dBm
+    4.    1406.000 MHz  Power:  -33.98 dBm
+    5.    1408.000 MHz  Power:  -33.92 dBm
+    6.    1410.000 MHz  Power:  -33.87 dBm
+    7.    1412.000 MHz  Power:  -33.82 dBm
+    8.    1414.000 MHz  Power:  -33.78 dBm
+    9.    1416.000 MHz  Power:  -33.75 dBm
+   10.    1418.000 MHz  Power:  -33.71 dBm
+  Max Power: -32.45 dBm
+  Avg Power: -33.89 dBm
+
+======================================================================
+END OF BENCHMARK REPORT
+======================================================================
