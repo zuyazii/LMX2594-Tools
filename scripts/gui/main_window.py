@@ -32,8 +32,24 @@ def _worker_subprocess_argv(worker_python: str, worker_script: str) -> List[str]
         return [worker_python]
     return [worker_python, worker_script]
 
-MSYS2_UCRT64_BIN = os.environ.get("MSYS2_UCRT64_BIN", r"C:\msys64\ucrt64\bin")
-MSYS2_QT_PLUGIN_PATH = os.environ.get("MSYS2_QT_PLUGIN_PATH", r"C:\msys64\ucrt64\share\qt6\plugins")
+from msys2_utils import get_msys2_paths
+
+# 设置 Qt 插件路径（在导入 PySide6 之前）
+# PyInstaller 打包后的路径
+_internal_dir = getattr(sys, '_MEIPASS', '')
+if _internal_dir:
+    _possible_paths = [
+        os.path.join(_internal_dir, 'PySide6', 'plugins'),
+        os.path.join(_internal_dir, 'plugins'),
+        os.path.join(_internal_dir, 'PyQt6', 'plugins'),
+    ]
+    for _p in _possible_paths:
+        if os.path.exists(_p):
+            os.environ['QT_PLUGIN_PATH'] = _p
+            os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = os.path.join(_p, 'platforms')
+            break
+
+MSYS2_UCRT64_BIN, MSYS2_QT_PLUGIN_PATH = get_msys2_paths()
 SYSTEM_ROOT = os.environ.get("SystemRoot", r"C:\Windows")
 WINDOWS_SYSTEM32 = os.path.join(SYSTEM_ROOT, "System32")
 
@@ -43,6 +59,8 @@ try:
 except ImportError:
     from PyQt5 import QtCore, QtGui, QtWidgets, QtNetwork
     Signal = QtCore.pyqtSignal
+
+_QAction = getattr(QtGui, "QAction", None) or QtWidgets.QAction
 
 from gui.styles import get_stylesheet, COLORS
 from gui.sidebar import Sidebar
@@ -156,6 +174,7 @@ class SweepWorker(QtCore.QThread):
                 text=True,
                 bufsize=1,
                 cwd=parent_dir,
+                creationflags=subprocess.CREATE_NO_WINDOW,
             )
 
         def request(self, payload: Dict[str, object]) -> Dict[str, object]:
@@ -454,13 +473,13 @@ class CalibrationApp(QtWidgets.QMainWindow):
         super().__init__(parent)
         self.setWindowTitle("LMX2594 Calibration")
         self.resize(1400, 900)
-        
-        # Apply dark theme
-        self.setStyleSheet(get_stylesheet())
-        
-        # Initialize state
+
+        # Initialize state (sets _tablet_mode needed by stylesheet)
         self._init_state()
-        
+
+        # Apply dark theme (tablet mode enlarges touch targets)
+        self.setStyleSheet(get_stylesheet(is_tablet=self._tablet_mode))
+
         # Build UI
         self._create_menu_bar()
         self._create_toolbar()
@@ -528,6 +547,40 @@ class CalibrationApp(QtWidgets.QMainWindow):
         
         # Status polling timer (2 second interval)
         self._status_poll_timer: Optional[QtCore.QTimer] = None
+
+        # Tablet mode: opt-in layout for touch screens
+        self._tablet_mode = False
+        self._sidebar_collapsed = False
+        self._last_tablet_suggested = False
+
+        # Bottom tab panel visibility and splitter backup
+        self._bottom_panel_visible = True
+        self._splitter_sizes_backup: List[int] = []
+
+    def changeEvent(self, event: QtCore.QEvent):
+        """Sync Full Screen menu check state with window state."""
+        super().changeEvent(event)
+        if event.type() == QtCore.QEvent.WindowStateChange and hasattr(self, "_act_fullscreen"):
+            self._act_fullscreen.setChecked(self.isFullScreen())
+
+    def resizeEvent(self, event: QtGui.QResizeEvent):
+        """Handle window resize events and adapt layout for tablet-sized screens."""
+        super().resizeEvent(event)
+        w, h = event.size().width(), event.size().height()
+
+        # Suggest switching to tablet mode when window shrinks below tablet threshold
+        # but only suggest if tablet mode is not already enabled
+        is_tablet_size = w < 1100 or h < 700
+        if is_tablet_size and not self._tablet_mode and not self._last_tablet_suggested:
+            self._last_tablet_suggested = True
+            QtWidgets.QMessageBox.information(
+                self,
+                "Screen Size Detected",
+                f"The window is now {w}x{h}. For the best experience on this screen size, "
+                "you can enable Tablet Mode in Edit > Preferences > Display.",
+            )
+        elif not is_tablet_size:
+            self._last_tablet_suggested = False
     
     def _create_menu_bar(self):
         """Create the menu bar."""
@@ -546,6 +599,27 @@ class CalibrationApp(QtWidgets.QMainWindow):
         # Edit menu
         edit_menu = menubar.addMenu("Edit")
         edit_menu.addAction("Preferences", self._on_preferences)
+
+        # View menu
+        view_menu = menubar.addMenu("View")
+        self._act_show_sidebar = _QAction("Show Sidebar", self)
+        self._act_show_sidebar.setCheckable(True)
+        self._act_show_sidebar.setChecked(True)
+        self._act_show_sidebar.triggered.connect(self._on_view_sidebar_toggled)
+        view_menu.addAction(self._act_show_sidebar)
+
+        self._act_show_bottom = _QAction("Show Bottom Panel", self)
+        self._act_show_bottom.setCheckable(True)
+        self._act_show_bottom.setChecked(True)
+        self._act_show_bottom.triggered.connect(self._on_view_bottom_toggled)
+        view_menu.addAction(self._act_show_bottom)
+
+        view_menu.addSeparator()
+        self._act_fullscreen = _QAction("Full Screen", self)
+        self._act_fullscreen.setCheckable(True)
+        self._act_fullscreen.setShortcut(QtGui.QKeySequence("F11"))
+        self._act_fullscreen.triggered.connect(self._on_fullscreen)
+        view_menu.addAction(self._act_fullscreen)
         
         # Help menu
         help_menu = menubar.addMenu("Help")
@@ -586,6 +660,15 @@ class CalibrationApp(QtWidgets.QMainWindow):
         toolbar.addWidget(self.reset_button)
 
         toolbar.addSeparator()
+
+        # Bottom panel toggle (shows/hides the tab area; gives more room to the plot)
+        self._bottom_panel_btn = QtWidgets.QPushButton("Show Tabs")
+        self._bottom_panel_btn.setToolTip("Toggle the bottom tab panel on/off")
+        self._bottom_panel_btn.setCheckable(True)
+        self._bottom_panel_btn.setChecked(True)
+        self._bottom_panel_btn.clicked.connect(self._on_toolbar_bottom_toggle)
+        toolbar.addWidget(self._bottom_panel_btn)
+
         toolbar.addWidget(QtWidgets.QLabel("Sweep:"))
         self.chk_usb2any = QtWidgets.QCheckBox("USB2ANY/LMX")
         self.chk_usb2any.setChecked(True)
@@ -614,30 +697,64 @@ class CalibrationApp(QtWidgets.QMainWindow):
         """Create the central widget with sidebar, plot, and tabs."""
         central = QtWidgets.QWidget()
         self.setCentralWidget(central)
-        
+
         main_layout = QtWidgets.QHBoxLayout(central)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
-        
-        # Left sidebar (will be created in Phase 2)
+
+        # --- Left strip: sidebar toggle always visible (even when drawer collapsed) ---
+        self._sidebar_strip = QtWidgets.QWidget()
+        self._sidebar_strip.setFixedWidth(24)
+        strip_layout = QtWidgets.QVBoxLayout(self._sidebar_strip)
+        strip_layout.setContentsMargins(0, 0, 0, 0)
+        strip_layout.setSpacing(0)
+
+        self._sidebar_toggle_btn = QtWidgets.QPushButton("◀")
+        self._sidebar_toggle_btn.setFixedWidth(24)
+        self._sidebar_toggle_btn.setCursor(QtCore.Qt.PointingHandCursor)
+        self._sidebar_toggle_btn.clicked.connect(self._toggle_sidebar)
+        self._sidebar_toggle_btn.setStyleSheet(
+            f"QPushButton {{ border: none; background-color: {COLORS['panel']}; "
+            f"color: {COLORS['text']}; font-size: 12px; padding: 4px 2px; }}"
+            f"QPushButton:hover {{ background-color: {COLORS['selection']}; }}"
+        )
+        strip_layout.addWidget(self._sidebar_toggle_btn)
+        strip_layout.addStretch(1)
+        main_layout.addWidget(self._sidebar_strip)
+
+        # --- Collapsible sidebar drawer (scrollable content) ---
+        self._sidebar_drawer_container = QtWidgets.QWidget()
+        self._sidebar_drawer_container.setFixedWidth(250)
+        drawer_inner = QtWidgets.QHBoxLayout(self._sidebar_drawer_container)
+        drawer_inner.setContentsMargins(0, 0, 0, 0)
+        drawer_inner.setSpacing(0)
+
+        self._sidebar_scroll = QtWidgets.QScrollArea()
+        self._sidebar_scroll.setWidgetResizable(True)
+        self._sidebar_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self._sidebar_scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self._sidebar_scroll.setStyleSheet(f"QScrollArea {{ background-color: {COLORS['sidebar']}; }}")
+
         self.sidebar = self._create_sidebar()
-        main_layout.addWidget(self.sidebar)
-        
-        # Right side: plot + tabs
-        right_widget = QtWidgets.QWidget()
-        right_layout = QtWidgets.QVBoxLayout(right_widget)
-        right_layout.setContentsMargins(0, 0, 0, 0)
-        right_layout.setSpacing(0)
-        
-        # Plot area (will be created in Phase 3)
+        self._sidebar_scroll.setWidget(self.sidebar)
+        drawer_inner.addWidget(self._sidebar_scroll)
+        main_layout.addWidget(self._sidebar_drawer_container)
+
+        # --- Plot + bottom tabs: vertical splitter (plot gets more space by default) ---
+        self._main_vsplitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         self.plot_widget = self._create_plot_area()
-        right_layout.addWidget(self.plot_widget, stretch=2)
-        
-        # Bottom tabs (will be created in Phase 4)
         self.tab_widget = self._create_tabs()
-        right_layout.addWidget(self.tab_widget, stretch=1)
-        
-        main_layout.addWidget(right_widget, stretch=1)
+        # Ensure tab widget never collapses to zero height (tablet usability)
+        self.tab_widget.setMinimumHeight(80)
+        self._main_vsplitter.addWidget(self.plot_widget)
+        self._main_vsplitter.addWidget(self.tab_widget)
+        # setCollapsible MUST be called AFTER widgets are added (indices are 0-based)
+        self._main_vsplitter.setCollapsible(0, False)
+        self._main_vsplitter.setCollapsible(1, True)
+        self._main_vsplitter.setStretchFactor(0, 3)
+        self._main_vsplitter.setStretchFactor(1, 1)
+        self._main_vsplitter.setSizes([560, 220])
+        main_layout.addWidget(self._main_vsplitter, stretch=1)
     
     def _create_sidebar(self):
         """Create the left sidebar."""
@@ -679,6 +796,139 @@ class CalibrationApp(QtWidgets.QMainWindow):
         tabs.currentChanged.connect(self._on_tab_changed)
         
         return tabs
+
+    def _apply_tablet_mode(self):
+        """Apply or remove tablet mode layout changes."""
+        # Re-apply stylesheet with updated tablet flag
+        self.setStyleSheet(get_stylesheet(is_tablet=self._tablet_mode))
+
+        # Update plot widget layout orientation
+        if hasattr(self, "plot_widget"):
+            self.plot_widget.set_tablet_mode(self._tablet_mode)
+
+        # In tablet mode: collapse sidebar if not already collapsed
+        if self._tablet_mode and not self._sidebar_collapsed:
+            self._toggle_sidebar()
+        elif not self._tablet_mode and self._sidebar_collapsed:
+            self._toggle_sidebar()
+
+        self._save_persistent_state()
+
+    def _toggle_sidebar(self):
+        """Animate the sidebar drawer open/closed."""
+        if not hasattr(self, "_sidebar_drawer_container"):
+            return
+
+        container = self._sidebar_drawer_container
+
+        target_width = 0 if not self._sidebar_collapsed else 250
+        self._sidebar_collapsed = not self._sidebar_collapsed
+
+        arrow = "▶" if self._sidebar_collapsed else "◀"
+        if hasattr(self, "_sidebar_toggle_btn"):
+            self._sidebar_toggle_btn.setText(arrow)
+
+        # setFixedWidth(N) pins both maximumWidth and minimumWidth to N, which
+        # overrides property animations.  Work around this by explicitly setting
+        # minimumWidth first (breaking the Fixed constraint), then animating both.
+        container.setMinimumWidth(target_width)
+
+        max_anim = QtCore.QPropertyAnimation(container, b"maximumWidth")
+        max_anim.setDuration(250)
+        max_anim.setStartValue(container.maximumWidth())
+        max_anim.setEndValue(target_width)
+        max_anim.setEasingCurve(QtCore.QEasingCurve.InOutQuad)
+
+        min_anim = QtCore.QPropertyAnimation(container, b"minimumWidth")
+        min_anim.setDuration(250)
+        min_anim.setStartValue(container.minimumWidth())
+        min_anim.setEndValue(target_width)
+        min_anim.setEasingCurve(QtCore.QEasingCurve.InOutQuad)
+
+        group = QtCore.QParallelAnimationGroup()
+        group.addAnimation(max_anim)
+        group.addAnimation(min_anim)
+        group.finished.connect(group.deleteLater)
+        group.start()
+
+        if hasattr(self, "_act_show_sidebar"):
+            self._act_show_sidebar.blockSignals(True)
+            self._act_show_sidebar.setChecked(not self._sidebar_collapsed)
+            self._act_show_sidebar.blockSignals(False)
+
+        self._save_persistent_state()
+
+    def _set_sidebar_visible(self, visible: bool):
+        """Show or hide the sidebar drawer (matches View > Show Sidebar)."""
+        want_collapsed = not visible
+        if bool(self._sidebar_collapsed) == want_collapsed:
+            return
+        self._toggle_sidebar()
+
+    def _on_view_sidebar_toggled(self):
+        self._set_sidebar_visible(self._act_show_sidebar.isChecked())
+
+    def _set_bottom_panel_visible(self, visible: bool):
+        """Show or hide the bottom tab widget; gives vertical space to the plot when hidden."""
+        if not hasattr(self, "_main_vsplitter"):
+            return
+        if self._bottom_panel_visible == visible:
+            return
+        self._bottom_panel_visible = visible
+        if visible:
+            self.tab_widget.setVisible(True)
+            sizes = self._splitter_sizes_backup
+            if sizes and len(sizes) == 2 and sum(sizes) > 10:
+                self._main_vsplitter.setSizes(sizes)
+            else:
+                h = max(self._main_vsplitter.height(), 200)
+                self._main_vsplitter.setSizes([int(h * 0.65), int(h * 0.35)])
+        else:
+            self._splitter_sizes_backup = list(self._main_vsplitter.sizes())
+            h = max(self._main_vsplitter.height(), 100)
+            self._main_vsplitter.setSizes([h, 0])
+            self.tab_widget.setVisible(False)
+        if hasattr(self, "_act_show_bottom"):
+            self._act_show_bottom.blockSignals(True)
+            self._act_show_bottom.setChecked(visible)
+            self._act_show_bottom.blockSignals(False)
+        if hasattr(self, "_bottom_panel_btn"):
+            self._bottom_panel_btn.blockSignals(True)
+            self._bottom_panel_btn.setChecked(visible)
+            self._bottom_panel_btn.setText("Hide Tabs" if visible else "Show Tabs")
+            self._bottom_panel_btn.blockSignals(False)
+        self._save_persistent_state()
+
+    def _on_view_bottom_toggled(self):
+        self._set_bottom_panel_visible(self._act_show_bottom.isChecked())
+
+    def _on_toolbar_bottom_toggle(self, checked: bool):
+        self._set_bottom_panel_visible(checked)
+
+    def _apply_saved_splitter_sizes(self):
+        """Restore vertical splitter sizes after window is shown (or prefs loaded)."""
+        if not hasattr(self, "_main_vsplitter"):
+            return
+        store = self._persist_settings
+        if not self._bottom_panel_visible:
+            self.tab_widget.setVisible(False)
+            h = max(self._main_vsplitter.height(), 300)
+            self._main_vsplitter.setSizes([h, 0])
+            return
+        self.tab_widget.setVisible(True)
+        raw = store.value("prefs/main_splitter_sizes", None)
+        if raw and isinstance(raw, (list, tuple)) and len(raw) == 2:
+            self._main_vsplitter.setSizes([int(raw[0]), int(raw[1])])
+        else:
+            h = max(self._main_vsplitter.height(), 400)
+            self._main_vsplitter.setSizes([int(h * 0.68), int(h * 0.32)])
+
+    def _on_fullscreen(self):
+        """Enter or exit fullscreen (hides OS taskbar when active)."""
+        if self._act_fullscreen.isChecked():
+            self.showFullScreen()
+        else:
+            self.showNormal()
     
     # Menu action handlers
     def _on_new_session(self):
@@ -956,6 +1206,29 @@ class CalibrationApp(QtWidgets.QMainWindow):
         vna_form.addRow("Excited ports", ports_widget)
         tabs.addTab(vna_page, "LibreVNA")
 
+        display_page = QtWidgets.QWidget()
+        display_form = QtWidgets.QFormLayout(display_page)
+        display_form.setSpacing(12)
+
+        tablet_mode_check = QtWidgets.QCheckBox()
+        tablet_mode_check.setChecked(bool(self._tablet_mode))
+        tablet_mode_check.setToolTip(
+            "Reorganizes the layout for tablet and touch screens. "
+            "The sidebar becomes collapsible and UI elements are enlarged for touch interaction."
+        )
+        display_form.addRow("Tablet Mode", tablet_mode_check)
+
+        tablet_note = QtWidgets.QLabel(
+            "<small style='color: #808080;'>"
+            "When enabled: sidebar collapses to a drawer, S-parameter plots stack vertically, "
+            "and touch targets are enlarged."
+            "</small>"
+        )
+        tablet_note.setWordWrap(True)
+        display_form.addRow("", tablet_note)
+
+        tabs.addTab(display_page, "Display")
+
         buttons = QtWidgets.QDialogButtonBox(
             QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
         )
@@ -1028,6 +1301,11 @@ class CalibrationApp(QtWidgets.QMainWindow):
 
         if dialog.exec() != QtWidgets.QDialog.Accepted:
             return
+
+        new_tablet_mode = tablet_mode_check.isChecked()
+        if new_tablet_mode != self._tablet_mode:
+            self._tablet_mode = new_tablet_mode
+            self._apply_tablet_mode()
 
         self._settings.update(
             {
@@ -1139,6 +1417,26 @@ class CalibrationApp(QtWidgets.QMainWindow):
             except Exception:
                 pass
 
+        self._tablet_mode = store.value("prefs/tablet_mode", False) in (True, "true", "True", 1, "1")
+        self._sidebar_collapsed = store.value("prefs/sidebar_collapsed", False) in (True, "true", "True", 1, "1")
+        self._bottom_panel_visible = store.value("prefs/bottom_panel_visible", True) in (True, "true", "True", 1, "1")
+
+        # Apply tablet mode to stylesheet on startup
+        if self._tablet_mode:
+            self.setStyleSheet(get_stylesheet(is_tablet=True))
+
+        # Restore sidebar collapsed state (drawer exists at this point)
+        if self._sidebar_collapsed and hasattr(self, "_sidebar_drawer_container"):
+            self._sidebar_drawer_container.setMinimumWidth(0)
+            if hasattr(self, "_sidebar_toggle_btn"):
+                self._sidebar_toggle_btn.setText("▶")
+
+        if hasattr(self, "_act_show_sidebar"):
+            self._act_show_sidebar.setChecked(not self._sidebar_collapsed)
+        if hasattr(self, "_act_show_bottom"):
+            self._act_show_bottom.setChecked(self._bottom_panel_visible)
+        QtCore.QTimer.singleShot(0, self._apply_saved_splitter_sizes)
+
         libre_json = store.value("librevna/state", "")
         if isinstance(libre_json, str) and libre_json.strip():
             try:
@@ -1178,6 +1476,15 @@ class CalibrationApp(QtWidgets.QMainWindow):
         store.setValue("devices/tinysa", self.sidebar.tinysa_combo.currentData())
         store.setValue("devices/usb2any", self.sidebar.usb2any_combo.currentData())
         store.setValue("devices/librevna", self.sidebar.librevna_combo.currentData())
+
+        store.setValue("prefs/tablet_mode", self._tablet_mode)
+        store.setValue("prefs/sidebar_collapsed", self._sidebar_collapsed)
+        store.setValue("prefs/bottom_panel_visible", self._bottom_panel_visible)
+        if hasattr(self, "_main_vsplitter"):
+            if self._bottom_panel_visible:
+                store.setValue("prefs/main_splitter_sizes", self._main_vsplitter.sizes())
+            elif self._splitter_sizes_backup:
+                store.setValue("prefs/main_splitter_sizes", self._splitter_sizes_backup)
 
         try:
             store.setValue("prefs/json", json.dumps(self._settings))
@@ -2964,6 +3271,7 @@ class CalibrationApp(QtWidgets.QMainWindow):
                 capture_output=True,
                 timeout=2,
                 cwd=parent_dir,
+                creationflags=subprocess.CREATE_NO_WINDOW,
             )
             if result.returncode != 0:
                 self._update_usb2any_poll_result(False, None)
@@ -3073,6 +3381,7 @@ class CalibrationApp(QtWidgets.QMainWindow):
                 capture_output=True,
                 timeout=8,
                 cwd=parent_dir,
+                creationflags=subprocess.CREATE_NO_WINDOW,
             )
             if result.returncode != 0:
                 err = (result.stderr or "").strip()
@@ -3180,11 +3489,35 @@ class CalibrationApp(QtWidgets.QMainWindow):
         process = QtCore.QProcess(self)
         env = QtCore.QProcessEnvironment.systemEnvironment()
         env.insert("LIBREVNA_IPC_NAME", self._librevna_ipc_name)
-        path_parts = [MSYS2_UCRT64_BIN, os.path.dirname(binary), WINDOWS_SYSTEM32, SYSTEM_ROOT]
+        ipc_root = os.path.dirname(os.path.abspath(binary))
+        path_parts = [MSYS2_UCRT64_BIN, ipc_root, WINDOWS_SYSTEM32, SYSTEM_ROOT]
         env.insert("PATH", ";".join([p for p in path_parts if p and os.path.isdir(p)]))
-        if MSYS2_QT_PLUGIN_PATH and os.path.isdir(MSYS2_QT_PLUGIN_PATH):
+
+        # librevna-ipc 为 MSYS2 MinGW + Qt6，必须与 MSVC 版 PySide6 插件隔离，否则会列出
+        # windows 插件但加载失败（ABI 不匹配）。
+        local_pf = os.path.join(ipc_root, "platforms")
+        local_plugins = os.path.join(ipc_root, "plugins")
+        if os.path.isfile(os.path.join(local_pf, "qwindows.dll")):
+            env.insert(
+                "QT_PLUGIN_PATH",
+                local_plugins if os.path.isdir(local_plugins) else ipc_root,
+            )
+            env.insert("QT_QPA_PLATFORM_PLUGIN_PATH", local_pf)
+        elif os.path.isfile(os.path.join(local_plugins, "platforms", "qwindows.dll")):
+            env.insert("QT_PLUGIN_PATH", local_plugins)
+            env.insert(
+                "QT_QPA_PLATFORM_PLUGIN_PATH",
+                os.path.join(local_plugins, "platforms"),
+            )
+        elif MSYS2_QT_PLUGIN_PATH and os.path.isdir(
+            os.path.join(MSYS2_QT_PLUGIN_PATH, "platforms")
+        ):
             env.insert("QT_PLUGIN_PATH", MSYS2_QT_PLUGIN_PATH)
-            env.insert("QT_QPA_PLATFORM_PLUGIN_PATH", MSYS2_QT_PLUGIN_PATH)
+            env.insert(
+                "QT_QPA_PLATFORM_PLUGIN_PATH",
+                os.path.join(MSYS2_QT_PLUGIN_PATH, "platforms"),
+            )
+        env.insert("QT_QPA_PLATFORM", "windows")
         env.insert("LIBREVNA_USB_BULK_TIMEOUT_MS", "3000")
         env.insert("LIBREVNA_IPC_LOG", os.path.join(os.path.dirname(parent_dir), "librevna-ipc.log"))
         env.insert("LIBREVNA_DISABLE_PACKET_LOG", "1")

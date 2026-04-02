@@ -30,6 +30,29 @@ DEFAULT_LIBREVNA_IPC_CANDIDATES = [
 ]
 MSYS2_UCRT64_BIN = os.environ.get("MSYS2_UCRT64_BIN", r"C:\msys64\ucrt64\bin")
 MSYS2_QT_PLUGIN_PATH = os.environ.get("MSYS2_QT_PLUGIN_PATH", r"C:\msys64\ucrt64\share\qt6\plugins")
+
+# 设置 Qt 插件路径（在导入 PySide6 之前）
+_internal_dir = getattr(sys, '_MEIPASS', '')
+if _internal_dir:
+    _possible_paths = [
+        os.path.join(_internal_dir, 'PySide6', 'plugins'),
+        os.path.join(_internal_dir, 'plugins'),
+        os.path.join(_internal_dir, 'PyQt6', 'plugins'),
+    ]
+    for _p in _possible_paths:
+        if os.path.exists(_p):
+            os.environ['QT_PLUGIN_PATH'] = _p
+            os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = os.path.join(_p, 'platforms')
+            break
+else:
+    # Auto-detect MSYS2 if paths don't exist
+    if not os.path.isdir(MSYS2_UCRT64_BIN):
+        _msys2_candidates = [r"C:\msys64", r"C:\msys64_old", r"C:\tools\msys64"]
+        for _cand in _msys2_candidates:
+            if os.path.isdir(os.path.join(_cand, "ucrt64", "bin")):
+                MSYS2_UCRT64_BIN = os.path.join(_cand, "ucrt64", "bin")
+                MSYS2_QT_PLUGIN_PATH = os.path.join(_cand, "ucrt64", "share", "qt6", "plugins")
+                break
 SYSTEM_ROOT = os.environ.get("SystemRoot", r"C:\Windows")
 WINDOWS_SYSTEM32 = os.path.join(SYSTEM_ROOT, "System32")
 IPC_SANITIZE_ENV = os.environ.get("LIBREVNA_IPC_SANITIZE_PATH", "1")
@@ -950,6 +973,7 @@ class LMXWorkerClient:
             output = subprocess.check_output(
                 [self._python_path, "-c", "import struct; print(struct.calcsize('P')*8)"],
                 text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW,
             ).strip()
         except Exception as exc:
             raise RuntimeError(f"Failed to run worker Python: {exc}") from exc
@@ -975,6 +999,7 @@ class LMXWorkerClient:
             text=True,
             bufsize=1,
             cwd=self._worker_root,
+            creationflags=subprocess.CREATE_NO_WINDOW,
         )
         if self._proc.stderr:
             self._stderr_thread = threading.Thread(target=self._drain_stderr, daemon=True)
@@ -1959,7 +1984,14 @@ class CalibrationWindow(QtWidgets.QMainWindow):
             self._prepend_env_path(env, os.path.dirname(binary))
             self._prepend_env_path(env, MSYS2_UCRT64_BIN)
             self._append_log("LibreVNA IPC PATH inherited")
-        if MSYS2_QT_PLUGIN_PATH and os.path.isdir(MSYS2_QT_PLUGIN_PATH):
+
+        # Set Qt plugin paths - prefer bundled plugins for PyInstaller builds
+        meipass = getattr(sys, '_MEIPASS', '')
+        bundled_plugins = os.path.join(meipass, 'plugins') if meipass else ''
+        if bundled_plugins and os.path.isdir(bundled_plugins):
+            env.insert("QT_PLUGIN_PATH", bundled_plugins)
+            env.insert("QT_QPA_PLATFORM_PLUGIN_PATH", os.path.join(bundled_plugins, 'platforms'))
+        elif MSYS2_QT_PLUGIN_PATH and os.path.isdir(MSYS2_QT_PLUGIN_PATH):
             env.insert("QT_PLUGIN_PATH", MSYS2_QT_PLUGIN_PATH)
             env.insert("QT_QPA_PLATFORM_PLUGIN_PATH", MSYS2_QT_PLUGIN_PATH)
         if self._settings.librevna_ipc_name:

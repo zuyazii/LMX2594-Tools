@@ -13,6 +13,8 @@ except ImportError:
     from PyQt5 import QtCore, QtWidgets
     Signal = QtCore.pyqtSignal
 
+from gui.table_utils import configure_table_horizontal_scroll
+
 
 class LibreVNATab(QtWidgets.QWidget):
     """LibreVNA results tab."""
@@ -106,6 +108,7 @@ class LibreVNATab(QtWidgets.QWidget):
         ])
         self.results_table.horizontalHeader().setStretchLastSection(True)
         right_layout.addWidget(self.results_table)
+        configure_table_horizontal_scroll(self.results_table)
 
         body_layout.addWidget(left_col, 0)
         body_layout.addWidget(right_col, 1)

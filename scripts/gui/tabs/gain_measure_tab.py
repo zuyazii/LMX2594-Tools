@@ -22,6 +22,8 @@ except ImportError:
     from PyQt5 import QtCore, QtGui, QtWidgets
     Signal = QtCore.pyqtSignal
 
+from gui.table_utils import configure_table_horizontal_scroll
+
 
 def format_tested_worst_summary(record: Dict) -> str:
     """One-line worst deviation for tested-antenna table."""
@@ -365,6 +367,7 @@ class AntennaTableWidget(QtWidgets.QWidget):
         self.table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.table.doubleClicked.connect(self._on_row_double_clicked)
         layout.addWidget(self.table)
+        configure_table_horizontal_scroll(self.table)
     
     def _on_add_row(self):
         """Add a new row to the table."""
@@ -688,6 +691,10 @@ class GainMeasureTab(QtWidgets.QWidget):
         self.tested_table.record_selected.connect(self._on_tested_selected)
         self.splitter.addWidget(self.tested_table)
 
+        # Ensure both tables stay visible even on narrow/tablet screens
+        self.golden_table.setMinimumWidth(180)
+        self.tested_table.setMinimumWidth(180)
+
         # Set stretch factors for equal initial size
         self.splitter.setStretchFactor(0, 1)
         self.splitter.setStretchFactor(1, 1)
@@ -716,6 +723,9 @@ class GainMeasureTab(QtWidgets.QWidget):
 
         layout.addWidget(self.splitter)
 
+        # Prevent splitter panes from collapsing to zero height on small screens
+        self.setMinimumHeight(160)
+
     def save_state(self, store) -> dict:
         """Save splitter state to config."""
         widths = self.splitter.sizes()
@@ -737,7 +747,16 @@ class GainMeasureTab(QtWidgets.QWidget):
             widths = store.value(f"{self._config_key}/splitter_widths")
 
         if widths and isinstance(widths, (list, tuple)) and len(widths) == 2:
-            self.splitter.setSizes([int(w) for w in widths])
+            w0, w1 = int(widths[0]), int(widths[1])
+            # Guard: never let both panels collapse to zero
+            if w0 <= 0 and w1 <= 0:
+                self.splitter.setSizes([250, 250])
+            elif w0 <= 0:
+                self.splitter.setSizes([w1, max(w1, 250)])
+            elif w1 <= 0:
+                self.splitter.setSizes([max(w0, 250), w0])
+            else:
+                self.splitter.setSizes([w0, w1])
     
     def _update_radio_enabled_state(self):
         """Enable/disable radio buttons based on selection state."""

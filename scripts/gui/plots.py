@@ -112,6 +112,7 @@ class DynamicPlotWidget(QtWidgets.QWidget):
         self._mag_mouse_proxy = None
         self._phase_mouse_proxy = None
         self._single_mouse_proxy = None
+        self._tablet_mode = False
         self._setup_ui()
         self._current_mode = "s_parameter"
     
@@ -247,6 +248,13 @@ class DynamicPlotWidget(QtWidgets.QWidget):
             slot=self._on_single_mouse_moved,
         )
         self.single_plot_widget.scene().sigMouseClicked.connect(self._on_single_mouse_clicked)
+
+    def set_tablet_mode(self, enabled: bool):
+        """Switch between desktop (horizontal) and tablet (vertical) S-parameter layout."""
+        self._tablet_mode = enabled
+        self.sparam_splitter.setOrientation(
+            QtCore.Qt.Vertical if enabled else QtCore.Qt.Horizontal
+        )
     
     def set_mode(self, mode: str):
         """Set the plot mode (s_parameter, spectrum, gain, comparison)."""

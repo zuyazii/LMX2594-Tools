@@ -10,6 +10,8 @@ try:
 except ImportError:
     from PyQt5 import QtWidgets
 
+from gui.table_utils import configure_table_horizontal_scroll
+
 
 class TinySATab(QtWidgets.QWidget):
     """tinySA results tab."""
@@ -28,3 +30,4 @@ class TinySATab(QtWidgets.QWidget):
             "Frequency (Hz)", "Power (dBm)", "Timestamp"
         ])
         layout.addWidget(self.results_table)
+        configure_table_horizontal_scroll(self.results_table)
